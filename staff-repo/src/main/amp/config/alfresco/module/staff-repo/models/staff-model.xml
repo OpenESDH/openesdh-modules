@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="case:staffModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+    <description>OpenESDH Staff Model</description>
+    <author>Torben N. Rasmussen</author>
+    <version>1.0</version>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+        <import uri="http://openesdh.dk/model/contact/1.0/" prefix="contact" />
+        <import uri="http://openesdh.dk/model/case/1.0/" prefix="case" />
+    </imports>
+    <namespaces>
+        <namespace uri="http://openesdh.dk/model/case/1.0/" prefix="case" />
+    </namespaces>
+    <types>
+        <type name="case:staff">
+            <parent>case:simple</parent>
+            <properties>
+                <property name="case:hireDate">
+                    <type>d:date</type>
+                    <mandatory>false</mandatory>
+                </property>
+            </properties>
+
+            <associations>
+                <association name="case:employee">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>contact:person</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </type>
+    </types>
+</model>
