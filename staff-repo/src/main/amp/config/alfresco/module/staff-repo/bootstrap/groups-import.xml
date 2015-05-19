@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0"
+           xmlns:cm="http://www.alfresco.org/model/content/1.0"
+           xmlns:sys="http://www.alfresco.org/model/system/1.0"
+           xmlns:usr="http://www.alfresco.org/model/user/1.0"
+           xmlns:app="http://www.alfresco.org/model/application/1.0"
+           xmlns:staff="http://openesdh.dk/model/staff/1.0">
+    <sys:container view:childName="sys:authorities">
+        <view:acl>
+            <view:ace view:access="ALLOWED">
+                <view:authority>GROUP_EVERYONE</view:authority>
+                <view:permission>Read</view:permission>
+            </view:ace>
+        </view:acl>
+        <view:associations>
+            <sys:children>
+                <cm:authorityContainer view:childName="staff:GROUP_HUMAN_RESOURCE">
+                    <view:aspects>
+                        <sys:referenceable />
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>GROUP_HUMAN_RESOURCE</sys:node-uuid>
+                        <cm:name>GROUP_HUMAN_RESOURCE</cm:name>
+                        <cm:authorityName>GROUP_HUMAN_RESOURCE</cm:authorityName>
+                    </view:properties>
+                </cm:authorityContainer>
+            </sys:children>
+        </view:associations>
+    </sys:container>
+    <sys:container view:childName="sys:zones">
+        <view:acl>
+            <view:ace view:access="ALLOWED">
+                <view:authority>GROUP_EVERYONE</view:authority>
+                <view:permission>Read</view:permission>
+            </view:ace>
+        </view:acl>
+        <view:associations>
+            <sys:children>
+                <cm:zone view:childName="cm:AUTH.ALF">
+                    <view:aspects>
+                        <sys:referenceable />
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>AUTH.ALF</sys:node-uuid>
+                        <cm:name>AUTH.ALF</cm:name>
+                    </view:properties>
+                    <view:associations>
+                        <cm:inZone>
+                            <view:reference
+                                    view:pathref="sys:authorities/staff:GROUP_HUMAN_RESOURCE"
+                                    view:childName="staff:GROUP_HUMAN_RESOURCE" />
+                        </cm:inZone>
+                    </view:associations>
+                </cm:zone>
+                <cm:zone view:childName="cm:APP.DEFAULT">
+                    <view:aspects>
+                        <sys:referenceable />
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>APP.DEFAULT</sys:node-uuid>
+                        <cm:name>APP.DEFAULT</cm:name>
+                    </view:properties>
+                    <view:associations>
+                        <cm:inZone>
+                            <view:reference
+                                    view:pathref="sys:authorities/staff:GROUP_HUMAN_RESOURCE"
+                                    view:childName="staff:GROUP_HUMAN_RESOURCE" />
+                        </cm:inZone>
+                    </view:associations>
+                </cm:zone>
+            </sys:children>
+        </view:associations>
+    </sys:container>
+</view:view>

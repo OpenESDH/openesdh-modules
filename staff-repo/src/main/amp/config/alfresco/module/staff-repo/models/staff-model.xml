@@ -28,12 +28,22 @@
                         <many>false</many>
                     </source>
                     <target>
-                        <class>cm:authority</class>
+                        <class>staff:employee</class>
                         <mandatory>true</mandatory>
                         <many>false</many>
                     </target>
                 </association>
             </associations>
+        </type>
+
+        <type name="staff:employee">
+            <parent>cm:person</parent>
+            <properties>
+                <property name="staff:cprNumber">
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
+                </property>
+            </properties>
         </type>
     </types>
 </model>
