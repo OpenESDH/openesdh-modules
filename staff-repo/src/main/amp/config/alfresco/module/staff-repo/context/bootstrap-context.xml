@@ -3,75 +3,24 @@
 
 <beans>
 
-    <!-- Bootstrap -->
-    <!--<bean id="${project.artifactId}.bootstrapSpaces" class="org.alfresco.repo.module.ImporterModuleComponent"-->
-          <!--parent="module.baseComponent">-->
-        <!--<property name="moduleId" value="${project.artifactId}" />-->
-        <!--<property name="name" value="${project.artifactId}.bootstrapSpaces" />-->
-        <!--<property name="description" value="Initial data requirements" />-->
-        <!--<property name="sinceVersion" value="1.0" />-->
-        <!--<property name="appliesFromVersion" value="1.0" />-->
-        <!--&lt;!&ndash; Data properties &ndash;&gt;-->
-        <!--<property name="importer" ref="spacesBootstrap"/>-->
-        <!--<property name="bootstrapViews">-->
-            <!--<list>-->
-                <!--<props>-->
-                    <!--<prop key="path">/${spaces.company_home.childname}/${spaces.dictionary.childname}/${spaces.templates.content.childname}</prop>-->
-                    <!--<prop key="location">alfresco/module/${project.artifactId}/bootstrap/content-template-import.xml</prop>-->
-                <!--</props>-->
-                <!--<props>-->
-                    <!--<prop key="path">/${spaces.company_home.childname}/${spaces.dictionary.childname}/${spaces.scripts.childname}</prop>-->
-                    <!--<prop key="location">alfresco/module/${project.artifactId}/bootstrap/script-import.xml</prop>-->
-                <!--</props>-->
-                <!--<props>-->
-                    <!--<prop key="path">/${spaces.company_home.childname}</prop>-->
-                    <!--<prop key="location">alfresco/module/${project.artifactId}/bootstrap/space-to-import.xml</prop>-->
-                <!--</props>-->
-            <!--</list>-->
-        <!--</property>-->
-    <!--</bean>-->
-
-    <bean id="${project.artifactId}.bootstrapGroups" class="org.alfresco.repo.module.ImporterModuleComponent"
-          parent="module.baseComponent">
-        <property name="moduleId" value="${project.artifactId}" />
-        <property name="name" value="${project.artifactId}.bootstrapGroups" />
-        <property name="description" value="Initial data requirements" />
-        <property name="sinceVersion" value="1.0" />
-        <property name="appliesFromVersion" value="1.0" />
-        <!-- Data properties -->
-        <property name="importer" ref="spacesBootstrap"/>
+    <!--The initial openESDH folder context bootstrap-->
+    <bean id="${project.artifactId}_folders_bootstrap"
+          parent="spacesStoreImporter" depends-on="openesdh-repo_bootstrap">
+        <property name="log"> <value>false</value> </property>
+        <property name="allowWrite">
+            <value>true</value>
+        </property>
+        <property name="useExistingStore"> <value>true</value> </property>
+        <property name="transactionService" ref="transactionService"/>
         <property name="bootstrapViews">
             <list>
                 <props>
+                    <prop key="path">/${spaces.company_home.childname}/oe:OpenESDH/oe:cases/oe:types</prop>
+                    <!--<prop key="uuidBinding">REPLACE_EXISTING</prop>-->
                     <prop key="uuidBinding">UPDATE_EXISTING</prop>
-                    <prop key="path">/${alfresco_user_store.system_container.childname}</prop>
-                    <prop key="location">alfresco/module/${project.artifactId}/bootstrap/groups-import.xml</prop>
+                    <prop key="location">alfresco/module/${project.artifactId}/context/bootstrap/folders.xml</prop>
                 </props>
             </list>
         </property>
     </bean>
-
-    <!--<bean id="<moduleid>.workflowBootstrap" parent="workflowDeployer">-->
-        <!--<property name="workflowDefinitions">-->
-            <!--<list>-->
-                <!--<props>-->
-                    <!--<prop key="engineId">jbpm</prop>-->
-                    <!--<prop key="location">alfresco/module/${project.artifactId}/workflow/workflowmodulename_processdefinition.xml</prop>-->
-                    <!--<prop key="mimetype">text/xml</prop>-->
-                    <!--<prop key="redeploy">true</prop>-->
-                <!--</props>-->
-            <!--</list>-->
-        <!--</property>-->
-        <!--<property name="models">-->
-            <!--<list>-->
-                <!--<value>alfresco/module/${project.artifactId}/workflow/workflowmodulename_workflowModel.xml</value>-->
-            <!--</list>-->
-        <!--</property>-->
-        <!--<property name="labels">-->
-            <!--<list>-->
-                <!--<value>alfresco/module/${project.artifactId}/workflow/workflowmodulename</value>-->
-            <!--</list>-->
-        <!--</property>-->
-    <!--</bean>-->
-
 </beans>
