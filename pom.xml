@@ -36,7 +36,6 @@
 
     <modules>
         <module>staff-repo</module>
-        <module>staff-share</module>
     </modules>
 
     <build>

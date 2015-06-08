@@ -12,8 +12,4 @@
     <import resource="classpath:alfresco/module/${project.artifactId}/context/bootstrap-context.xml" />
 
     <import resource="classpath:alfresco/module/${project.artifactId}/context/staff-repository-context.xml" />
-
-    <bean id="mybean" class="dk.openesdh.BootstrapSecurity" init-method="init">
-        <property name="authorityService" ref="AuthorityService"/>
-    </bean>
 </beans>
