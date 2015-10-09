@@ -7,7 +7,7 @@
     <namespaces>
         <namespace uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
         <namespace uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
-        <namespace uri="http://openesdh.dk/model/case/staff/1.0/" prefix="staff" />
+        <namespace uri="http://openesdh.dk/model/case/staff/1.0" prefix="staff" />
     </namespaces>
 
     <permissionSet type="staff:case" expose="selected">

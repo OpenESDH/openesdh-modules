@@ -2,28 +2,6 @@
 <!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
 
 <beans>
-
-    <!--The initial openESDH folder context bootstrap-->
-    <bean id="${project.artifactId}_folders_bootstrap"
-          parent="spacesStoreImporter" depends-on="openesdh-repo_bootstrap">
-        <property name="log"> <value>false</value> </property>
-        <property name="allowWrite">
-            <value>true</value>
-        </property>
-        <property name="useExistingStore"> <value>true</value> </property>
-        <property name="transactionService" ref="transactionService"/>
-        <property name="bootstrapViews">
-            <list>
-                <props>
-                    <prop key="path">/${spaces.company_home.childname}/oe:OpenESDH/oe:cases/oe:types</prop>
-                    <!--<prop key="uuidBinding">REPLACE_EXISTING</prop>-->
-                    <prop key="uuidBinding">UPDATE_EXISTING</prop>
-                    <prop key="location">alfresco/module/${project.artifactId}/context/bootstrap/folders.xml</prop>
-                </props>
-            </list>
-        </property>
-    </bean>
-
     <bean id="${project.artifactId}_bootstrapGroups" class="org.alfresco.repo.module.ImporterModuleComponent" parent="module.baseComponent">
         <property name="moduleId" value="${project.artifactId}"/>
         <property name="name" value="${project.artifactId}_bootstrapGroups"/>

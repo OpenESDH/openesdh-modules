@@ -6,11 +6,11 @@
     <imports>
         <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
         <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
-        <import uri="http://openesdh.dk/model/openesdh/1.0/" prefix="oe" />
-        <import uri="http://openesdh.dk/model/case/base/1.0/" prefix="base" />
+        <import uri="http://openesdh.dk/model/openesdh/1.0" prefix="oe" />
+        <import uri="http://openesdh.dk/model/case/base/1.0" prefix="base" />
     </imports>
     <namespaces>
-        <namespace uri="http://openesdh.dk/model/case/staff/1.0/" prefix="staff" />
+        <namespace uri="http://openesdh.dk/model/case/staff/1.0" prefix="staff" />
     </namespaces>
 
     <constraints>
@@ -63,6 +63,7 @@
             </associations>
             <overrides>
                 <property name="oe:status">
+                	<default>in-progress</default>
                     <constraints>
                         <constraint ref="staff:caseStatusConstraint"/>
                     </constraints>

@@ -3,3 +3,6 @@
 *.iml
 target
 alf_data_dev
+*.classpath
+*.project
+.settings
