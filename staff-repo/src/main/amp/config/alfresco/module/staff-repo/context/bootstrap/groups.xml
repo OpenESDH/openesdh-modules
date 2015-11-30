@@ -48,27 +48,9 @@
     <view:reference view:pathref="${system.zones_container.childname}/cm:AUTH.ALF">
         <view:associations>
             <cm:inZone>
-                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator">
-                    <view:associations>
-                        <cm:member>
-                            <view:reference view:pathref="/sys:system/sys:people/cm:admin" view:childname="cm:admin"/>
-                        </cm:member>
-                    </view:associations>
-                </view:reference>
-                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffReader">
-                    <view:associations>
-                        <cm:member>
-                            <view:reference view:pathref="/sys:system/sys:people/cm:admin" view:childname="cm:admin"/>
-                        </cm:member>
-                    </view:associations>
-                </view:reference>
-                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffWriter">
-                    <view:associations>
-                        <cm:member>
-                            <view:reference view:pathref="/sys:system/sys:people/cm:admin" view:childname="cm:admin"/>
-                        </cm:member>
-                    </view:associations>
-                </view:reference>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator" view:childname="cm:GROUP_CaseStaffCreator"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffReader" view:childname="cm:GROUP_CaseStaffReader"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffWriter" view:childname="cm:GROUP_CaseStaffWriter"/>
             </cm:inZone>
         </view:associations>
     </view:reference>
@@ -79,6 +61,15 @@
                 <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffReader" view:childname="cm:GROUP_CaseStaffReader"/>
                 <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffWriter" view:childname="cm:GROUP_CaseStaffWriter"/>
             </cm:inZone>
+        </view:associations>
+    </view:reference>
+    
+    <!-- Add admin user into CaseStaffCreator --> 
+    <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator">
+        <view:associations>
+            <cm:member>
+                <view:reference view:pathref="/sys:system/sys:people/cm:admin" view:childName="cm:admin"></view:reference>           
+            </cm:member>
         </view:associations>
     </view:reference>
 </view:view>
