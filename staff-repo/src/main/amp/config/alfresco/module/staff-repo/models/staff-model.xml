@@ -13,23 +13,6 @@
         <namespace uri="http://openesdh.dk/model/case/staff/1.0" prefix="staff" />
     </namespaces>
 
-    <constraints>
-        <constraint name="staff:caseStatusConstraint" type="LIST">
-            <parameter name="allowedValues">
-                <list>
-                    <!-- TODO: localize (check localisation in /src/main/amp/config/alfresco/module/simple_case/messages/case-model.properties) -->
-                    <value>planned</value>
-                    <value>in-progress</value>
-                    <value>existing</value>
-                    <value>pending</value>
-                    <value>archived</value>
-                    <value>cancelled</value>
-                    <value>closed</value>
-                </list>
-            </parameter>
-        </constraint>
-    </constraints>
-
     <types>
         <type name="staff:case">
             <parent>base:case</parent>
@@ -65,14 +48,6 @@
                     </target>
                 </association>
             </associations>
-            <overrides>
-                <property name="oe:status">
-                	<default>in-progress</default>
-                    <constraints>
-                        <constraint ref="staff:caseStatusConstraint"/>
-                    </constraints>
-                </property>
-            </overrides>
         </type>
 
         <type name="staff:employee">
