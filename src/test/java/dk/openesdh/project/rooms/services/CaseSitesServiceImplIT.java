@@ -137,9 +137,9 @@ public class CaseSitesServiceImplIT {
     @After
     public void tearDown() throws Exception {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
-        List<NodeRef> folders = Arrays.asList(new NodeRef[] { testFolder });
-        List<NodeRef> cases = Arrays.asList(new NodeRef[] { testCase1 });
-        List<String> users = Arrays.asList(new String[] { CaseHelper.DEFAULT_USERNAME });
+        List<NodeRef> folders = Arrays.asList(testFolder);
+        List<NodeRef> cases = Arrays.asList(testCase1);
+        List<String> users = Arrays.asList(CaseHelper.DEFAULT_USERNAME);
         try {
             docTestHelper.removeNodesAndDeleteUsersInTransaction(folders, cases, users);
         } catch (Exception ignored) {
