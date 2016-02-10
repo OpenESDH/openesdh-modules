@@ -56,7 +56,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+    
     <dependencies>
         <!-- Following dependencies are needed for compiling Java code in src/main/java;
              <scope>provided</scope> is inherited for each of the following;
@@ -64,6 +64,10 @@
         <dependency>
             <groupId>${alfresco.groupId}</groupId>
             <artifactId>alfresco-repository</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco-remote-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.dynamicextensionsalfresco</groupId>
@@ -96,7 +100,22 @@
             <type>amp</type>
         </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-surefire-plugin</artifactId>
+		        <configuration>
+		          <includes>
+		            <include>**/*IT.java</include>
+		          </includes>
+		        </configuration>
+		      </plugin>
+        </plugins>
+    </build>
+    
+    <!-- this is mandatory so tests can be run in parallel  -->
+<!-- 
     <profiles>
     
         <profile>
@@ -135,14 +154,70 @@
         </profile>
     
         <profile>
-            <id>amp-to-war</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.alfresco.maven</groupId>
-                    <artifactId>alfresco-rad</artifactId>
-                    <version>${maven.alfresco.version}</version>
-                </dependency>
-            </dependencies>
+            <id>auto-integration-test</id>
+            <properties>
+                <skipTests>false</skipTests>
+            </properties>
+            <build>
+                <plugins>
+		            <plugin>
+		                <groupId>org.apache.tomcat.maven</groupId>
+		                <artifactId>tomcat7-maven-plugin</artifactId>
+		                <executions>
+		                    <execution>
+                                <id>run-embedded</id>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <fork>true</fork> 
+                                    <port>9090</port>
+                                    <ignorePackaging>true</ignorePackaging>
+                                    <useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader>
+                                    <systemProperties>
+                                        <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                                    </systemProperties>
+                                    <contextFile>${project.basedir}/tomcat/context.xml</contextFile>
+                                </configuration>
+                            </execution>
+						    <execution>
+						      <id>stop-tomcat</id>
+						      <phase>post-integration-test</phase>
+						      <goals>
+						        <goal>shutdown</goal>
+						      </goals>
+						    </execution>
+					  </executions>
+		            </plugin>
+		            <plugin>
+		                 <groupId>org.apache.maven.plugins</groupId>
+		                 <artifactId>maven-failsafe-plugin</artifactId>
+		                 <version>2.18.1</version>
+	                     <configuration>
+	                       <forkCount>1</forkCount>
+	                       <reuseForks>false</reuseForks>
+	                       <argLine>${app.testing.jvm.args}</argLine>
+	                     </configuration>
+		                 <executions>
+		                     <execution>
+		                         <phase>integration-test</phase>
+		                         <goals>
+		                             <goal>integration-test</goal>
+		                         </goals>
+		                     </execution>
+		                 </executions>
+		                 <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.surefire</groupId>
+                                <artifactId>surefire-junit47</artifactId>
+                                <version>2.18.1</version>
+                            </dependency>
+                        </dependencies>
+		             </plugin>
+	             </plugins>
+             </build>
         </profile>
     </profiles>
+     -->
 </project>
