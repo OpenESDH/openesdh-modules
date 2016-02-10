@@ -1,10 +1,13 @@
 package dk.openesdh.project.rooms.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.alfresco.service.cmr.security.PersonService.PersonInfo;
 import org.alfresco.service.cmr.site.SiteVisibility;
+
+import dk.openesdh.repo.model.CaseDocument;
 
 public class CaseSite {
 
@@ -15,10 +18,12 @@ public class CaseSite {
     private String description;
     private SiteVisibility visibility;
     private String nodeRef;
-    // Node refs of the documents record folders
-    private List<String> siteDocuments = new ArrayList<String>();
     private List<SiteMember> siteMembers = new ArrayList<CaseSite.SiteMember>();
     private List<SiteParty> siteParties = new ArrayList<CaseSite.SiteParty>();
+    private List<CaseDocument> siteDocuments = new ArrayList<>();
+    private Date createdDate;
+    private Date lastModifiedDate;
+    private String documentsFolderRef;
 
     private PersonInfo creator;
 
@@ -35,19 +40,6 @@ public class CaseSite {
         this.title = title;
         this.description = description;
         this.visibility = visibility;
-    }
-
-    public CaseSite(String caseId, String sitePreset, String shortName, String title, String description,
-            SiteVisibility visibility, String nodeRef, PersonInfo creator) {
-        super();
-        this.caseId = caseId;
-        this.sitePreset = sitePreset;
-        this.shortName = shortName;
-        this.title = title;
-        this.description = description;
-        this.visibility = visibility;
-        this.nodeRef = nodeRef;
-        this.creator = creator;
     }
 
     public String getCaseId() {
@@ -106,23 +98,6 @@ public class CaseSite {
         this.nodeRef = nodeRef;
     }
 
-    /**
-     * 
-     * @return List of the documents record folders node refs
-     */
-    public List<String> getSiteDocuments() {
-        return siteDocuments;
-    }
-
-    /**
-     * Sets list of the doucments record folders node refs
-     * 
-     * @param siteDocuments
-     */
-    public void setSiteDocuments(List<String> siteDocuments) {
-        this.siteDocuments = siteDocuments;
-    }
-
     public List<SiteMember> getSiteMembers() {
         return siteMembers;
     }
@@ -145,6 +120,38 @@ public class CaseSite {
 
     public void setCreator(PersonInfo creator) {
         this.creator = creator;
+    }
+
+    public List<CaseDocument> getSiteDocuments() {
+        return siteDocuments;
+    }
+
+    public void setSiteDocuments(List<CaseDocument> siteDocuments) {
+        this.siteDocuments = siteDocuments;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Date getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(Date lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public String getDocumentsFolderRef() {
+        return documentsFolderRef;
+    }
+
+    public void setDocumentsFolderRef(String documentsFolderRef) {
+        this.documentsFolderRef = documentsFolderRef;
     }
 
     public static class SiteMember {

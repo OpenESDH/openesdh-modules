@@ -7,7 +7,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 
 import dk.openesdh.project.rooms.model.CaseSite;
-import dk.openesdh.project.rooms.model.CaseSiteDocument;
 import dk.openesdh.repo.services.cases.CaseService;
 
 public interface CaseSitesService {
@@ -54,20 +53,11 @@ public interface CaseSitesService {
     public void updateCaseSite(CaseSite site);
 
     /**
-     * Retrieves a list of documents contained in the provided site
+     * Retrieves site info by provide short name
      * 
      * @param shortName
-     *            Short name of the site to retrieve documents from
-     * @return a list of documents contained in the provided site
+     * @return
      */
-    public List<CaseSiteDocument> getCaseSiteDocuments(String shortName);
-
-    /**
-     * Deletes provided site and copies provided documents to case
-     * 
-     * @param site
-     *            Case site to delete and documents to copy
-     */
-    public void deleteCaseSite(CaseSite site);
+    CaseSite getCaseSite(String shortName);
 
 }

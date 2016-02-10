@@ -3,15 +3,20 @@ package dk.openesdh.project.rooms.services;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
+import org.alfresco.repo.policy.JavaBehaviour;
+import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.repo.site.SiteModel;
@@ -33,7 +38,7 @@ import org.alfresco.service.cmr.site.SiteVisibility;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -43,13 +48,15 @@ import com.google.common.base.Strings;
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.project.rooms.model.CaseSite.SiteMember;
 import dk.openesdh.project.rooms.model.CaseSite.SiteParty;
-import dk.openesdh.project.rooms.model.CaseSiteDocument;
+import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.ContactInfo;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.contacts.ContactService;
+import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.lock.OELockService;
 
 @Service("CaseSitesService")
 public class CaseSitesServiceImpl implements CaseSitesService {
@@ -97,6 +104,17 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     @Autowired
     @Qualifier("CaseSiteDocumentsService")
     private CaseSiteDocumentsService caseSiteDocumentsService;
+    @Autowired
+    @Qualifier("CaseDocumentCopyService")
+    private CaseDocumentCopyService caseDocumentCopyService;
+
+    @Autowired
+    @Qualifier("OELockService")
+    private OELockService oeLockService;
+
+    @Autowired
+    @Qualifier("policyComponent")
+    private PolicyComponent policyComponent;
 
     @Autowired
     @Qualifier("TransactionRunner")
@@ -110,15 +128,19 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         return tr.runInTransaction(() -> createCaseSiteImpl(site));
     }
 
-    protected void deleteSite(String shortName) {
+    @PostConstruct
+    public void init() {
+        this.policyComponent.bindClassBehaviour(BeforeDeleteNodePolicy.QNAME, SiteModel.TYPE_SITE,
+                new JavaBehaviour(this, "beforeDeleteSite"));
+    }
 
-        // TODO investigate why the SiteServiceImpl.beforePurgeNode() is not
-        // called on siteService.deleteSite(), which should take care of this
-        // groups/roles stuff
+    // Fix for non-working SiteService.beforePurgeNode
+    public void beforeDeleteSite(NodeRef nodeRef) {
+        String shortName = siteService.getSiteShortName(nodeRef);
+        deleteSiteGroups(shortName);
+    }
 
-        // !!!!!!!! this is likely because the wrong "siteService" bean is used
-        // !!!!! Use qualifier with bean id "SiteService".
-
+    private void deleteSiteGroups(String shortName) {
         String siteGroup = siteService.getSiteGroup(shortName);
         if (authorityService.authorityExists(siteGroup)) {
             authorityService.deleteAuthority(siteGroup);
@@ -131,9 +153,6 @@ public class CaseSitesServiceImpl implements CaseSitesService {
                 authorityService.deleteAuthority(roleGroup);
             }
         }
-
-        siteService.deleteSite(shortName);
-
     }
 
     protected NodeRef createCaseSiteImpl(CaseSite site)
@@ -154,17 +173,21 @@ public class CaseSitesServiceImpl implements CaseSitesService {
          * site and copying each document to the site.
          */
 
+        // Set site description otherwise it becomes non-searchable for some
+        // reason. Perhaps it's an alfresco bug.
+        String siteDescription = StringUtils.isEmpty(site.getDescription()) ? site.getTitle()
+                : site.getDescription();
         Pair<SiteInfo, NodeRef> siteDocLibPair = tr.runInNewTransaction(() -> {
             SiteInfo siteInfo = siteService.createSite("site-dashboard", site.getShortName(), site.getTitle(),
-                    site.getDescription(),
-                    site.getVisibility());
+                    siteDescription,
+                    SiteVisibility.MODERATED);
 
             Map<QName, Serializable> properties = new HashMap<>();
             properties.put(OpenESDHModel.PROP_OE_CASE_ID, site.getCaseId());
             nodeService.addAspect(siteInfo.getNodeRef(), OpenESDHModel.ASPECT_OE_CASE_ID, properties);
             createCaseIdFolder(siteInfo, site);
             NodeRef docLibrary = createDocumentLibrary(siteInfo);
-            return new Pair<SiteInfo, NodeRef>(siteInfo, docLibrary);
+            return new Pair<>(siteInfo, docLibrary);
         });
 
         final SiteInfo createdSite = siteDocLibPair.getFirst();
@@ -177,8 +200,8 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
             inviteSiteParties(site);
         } catch (Exception ex) {
-            tr.runInNewTransaction(() -> {
-                deleteSite(createdSite.getShortName());
+            tr.runInNewTransactionAsAdmin(() -> {
+                siteService.deleteSite(createdSite.getShortName());
                 return null;
             });
             throw ex;
@@ -196,7 +219,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
      * @return
      */
     protected NodeRef createCaseIdFolder(SiteInfo createdSite, CaseSite site) {
-        Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
+        Map<QName, Serializable> properties = new HashMap<>();
         properties.put(ContentModel.PROP_DESCRIPTION, "case Id" + site.getCaseId());
         properties.put(ContentModel.PROP_NAME, site.getCaseId());
         properties.put(SiteModel.PROP_COMPONENT_ID, SiteService.DOCUMENT_LIBRARY);
@@ -212,22 +235,22 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
     protected NodeRef createDocumentLibrary(SiteInfo createdSite){
 
-        Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
+        Map<QName, Serializable> properties = new HashMap<>();
         properties.put(ContentModel.PROP_DESCRIPTION, "Document Library");
         properties.put(ContentModel.PROP_NAME, SiteService.DOCUMENT_LIBRARY);
         properties.put(SiteModel.PROP_COMPONENT_ID, SiteService.DOCUMENT_LIBRARY);
 
-        return nodeService.createNode(createdSite.getNodeRef(), ContentModel.ASSOC_CONTAINS,
+        NodeRef documentLibrary = nodeService.createNode(createdSite.getNodeRef(), ContentModel.ASSOC_CONTAINS,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, SiteService.DOCUMENT_LIBRARY),
                 ContentModel.TYPE_FOLDER, properties).getChildRef();
+        nodeService.addAspect(documentLibrary, OpenESDHModel.ASPECT_DOCUMENT_CONTAINER, null);
+        return documentLibrary;
     }
 
     protected void copySiteDocuments(CaseSite site, NodeRef targetFolder) throws Exception {
-        for (String docRecordFolderNodeRef : site.getSiteDocuments()) {
-            tr.runInNewTransaction(() -> {
-                documentService.copyDocumentToFolder(new NodeRef(docRecordFolderNodeRef), targetFolder);
-                return null;
-            });
+        for (CaseDocument document : site.getSiteDocuments()) {
+            caseDocumentCopyService.copyDocumentToFolderRetainVersionLabels(document, targetFolder);
+            oeLockService.lock(new NodeRef(document.getNodeRef()), true);
         }
     }
 
@@ -254,27 +277,24 @@ public class CaseSitesServiceImpl implements CaseSitesService {
             return Collections.emptyList();
         }
 
-        StringBuilder query = new StringBuilder(128);
-        query.append("+TYPE:\"").append(SiteModel.TYPE_SITE).append('"').append(" AND (")
-                .append(OpenESDHModel.OE_PREFIX).append(":caseId:\"").append(caseId).append("\"")
-                .append(")");
-
         SearchParameters sp = new SearchParameters();
         sp.addStore(siteRoot.getStoreRef());
-        sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
-        sp.setQuery(query.toString());
+        sp.setLanguage(SearchService.LANGUAGE_CMIS_ALFRESCO);
+
+        String query = new StringBuilder(256)
+                .append("SELECT s.cmis:objectId FROM st:site AS s JOIN oe:caseId AS cid ON s.cmis:objectId=cid.cmis:objectId WHERE cid.oe:caseId='")
+                .append(caseId)
+                .append("'").toString();
+        sp.setQuery(query);
 
         ResultSet results = null;
         try {
             results = this.searchService.query(sp);
             return results.getNodeRefs().stream()
-.map(nodeRef -> createCaseSite(nodeRef))
+                    .map(nodeRef -> getCaseSite(nodeRef))
                     .collect(Collectors.toList());
         } catch (LuceneQueryParserException lqpe) {
             lqpe.printStackTrace();
-            // Log the error but suppress is from the user
-            // logger.error("LuceneQueryParserException with findSites()",
-            // lqpe);
             return Collections.emptyList();
         } finally {
             if (results != null)
@@ -282,25 +302,31 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         }
     }
 
-    private CaseSite createCaseSite(NodeRef siteNodeRef) {
+    private CaseSite getCaseSite(NodeRef siteNodeRef) {
         Map<QName, Serializable> properties = this.nodeService.getProperties(siteNodeRef);
         String caseId = null;
         if (properties.keySet().contains(OpenESDHModel.PROP_OE_CASE_ID)) {
             caseId = (String) properties.get(OpenESDHModel.PROP_OE_CASE_ID);
         }
-        String shortName = (String) properties.get(ContentModel.PROP_NAME);
-        String sitePreset = (String) properties.get(SiteModel.PROP_SITE_PRESET);
-        String title = (String) properties.get(ContentModel.PROP_TITLE);
-        String description = (String) properties.get(ContentModel.PROP_DESCRIPTION);
 
-        // Get the visibility of the site
-        SiteVisibility visibility = getSiteVisibility(siteNodeRef);
+        CaseSite site = new CaseSite();
+        site.setCaseId(caseId);
+        site.setShortName((String) properties.get(ContentModel.PROP_NAME));
+        site.setSitePreset((String) properties.get(SiteModel.PROP_SITE_PRESET));
+        site.setTitle((String) properties.get(ContentModel.PROP_TITLE));
+        site.setDescription((String) properties.get(ContentModel.PROP_DESCRIPTION));
+        site.setCreatedDate((Date) properties.get(ContentModel.PROP_CREATED));
+        site.setLastModifiedDate((Date) properties.get(ContentModel.PROP_MODIFIED));
+        site.setVisibility(getSiteVisibility(siteNodeRef));
 
         String siteCreatorUserName = properties.get(ContentModel.PROP_CREATOR).toString();
         PersonInfo siteCreator = personService.getPerson(personService.getPerson(siteCreatorUserName));
+        site.setCreator(siteCreator);
 
-        return new CaseSite(caseId, sitePreset, shortName, title, description, visibility, siteNodeRef.toString(),
-                siteCreator);
+        site.setDocumentsFolderRef(
+                siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY).toString());
+
+        return site;
     }
 
     private SiteVisibility getSiteVisibility(NodeRef siteNodeRef) {
@@ -336,71 +362,17 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         siteService.updateSite(siteInfo);
     }
 
-    public List<CaseSiteDocument> getCaseSiteDocuments(String siteShortName) {
-        NodeRef documentLibrary = siteService.getContainer(siteShortName, SiteService.DOCUMENT_LIBRARY);
-        return nodeService.getChildAssocs(documentLibrary)
-                .stream()
-                .map(assoc -> caseSiteDocumentsService.getCaseSiteDocument(assoc.getChildRef()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void deleteCaseSite(CaseSite site) {
-        tr.runInTransaction(() -> {
-            copySiteDocumentsToCase(site);
-            deleteSite(site.getShortName());
-            return null;
-        });
-    }
-
-    protected void copySiteDocumentsToCase(CaseSite site) {
-
-        if (site.getSiteDocuments().isEmpty()) {
-            return;
-        }
-
-        List<CaseSiteDocument> siteDocsToCopy = site.getSiteDocuments()
-                .stream()
-                .map(docNodeRef -> caseSiteDocumentsService.getCaseSiteDocument(new NodeRef(docNodeRef)))
-                .collect(Collectors.toList());
-
-        NodeRef caseNodeRef = caseService.getCaseById(site.getCaseId());
-
-        List<CaseSiteDocument> caseCurrentDocuments = caseSiteDocumentsService.getCaseDocuments(caseNodeRef);
-        NodeRef caseDocsFolder = caseService.getDocumentsFolder(caseNodeRef);
-
-        for (CaseSiteDocument siteDocument : siteDocsToCopy) {
-            String siteDocumentName = FilenameUtils.removeExtension(siteDocument.getName());
-
-            Optional<CaseSiteDocument> caseDocumentTwinForSiteDocument = caseCurrentDocuments
-                    .stream()
-                    .filter(caseDoc -> caseDoc.getName().equals(siteDocumentName))
-                    .findAny();
-
-            if (caseDocumentTwinForSiteDocument.isPresent()) {
-                createCaseDocumentNewVersionFromSiteDocument(caseDocumentTwinForSiteDocument.get(), siteDocument);
-            } else {
-                caseSiteDocumentsService.copyDocumentFileToDocumentFolder(siteDocument, caseDocsFolder);
-            }
-        }
-    }
-
-    private void createCaseDocumentNewVersionFromSiteDocument(CaseSiteDocument caseDocument,
-            CaseSiteDocument siteDocument) {
-        if (ContentModel.TYPE_CONTENT.toString().equals(siteDocument.getType())) {
-            caseSiteDocumentsService.createNewVersionOfCaseMainDocument(
-                    new NodeRef(caseDocument.getNodeRef()), new NodeRef(siteDocument.getNodeRef()));
-        }else{
-            caseSiteDocumentsService.createNewVersionOfCaseDocument(
-                    new NodeRef(caseDocument.getNodeRef()), new NodeRef(siteDocument.getNodeRef()));
-        }
-    }
-
     @Override
     public List<CaseSite> getCaseSites() {
         return nodeService.getChildAssocs(siteService.getSiteRoot(), new HashSet<QName>(Arrays.asList(SiteModel.TYPE_SITE)))
               .stream()
-.map(assoc -> createCaseSite(assoc.getChildRef()))
+              .map(assoc -> getCaseSite(assoc.getChildRef()))
               .collect(Collectors.toList());
+    }
+
+    @Override
+    public CaseSite getCaseSite(String shortName) {
+        NodeRef siteNodeRef = siteService.getSite(shortName).getNodeRef();
+        return getCaseSite(siteNodeRef);
     }
 }
