@@ -59,18 +59,21 @@
             <artifactId>openesdh-repo</artifactId>
             <version>${openesdhrepo.version}</version>
             <classifier>classes</classifier>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
             <version>${openesdhrepo.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh.case</groupId>
             <artifactId>simple-case-repo</artifactId>
             <version>${openesdh.simple.case.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh</groupId>

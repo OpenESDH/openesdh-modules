@@ -143,14 +143,14 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     private void deleteSiteGroups(String shortName) {
         String siteGroup = siteService.getSiteGroup(shortName);
         if (authorityService.authorityExists(siteGroup)) {
-            authorityService.deleteAuthority(siteGroup);
+            authorityService.deleteAuthority(siteGroup, false);
         }
 
         List<String> roles = siteService.getSiteRoles();
         for (String role : roles) {
             String roleGroup = siteService.getSiteRoleGroup(shortName, role);
             if (authorityService.authorityExists(roleGroup)) {
-                authorityService.deleteAuthority(roleGroup);
+                authorityService.deleteAuthority(roleGroup, false);
             }
         }
     }
