@@ -1,13 +1,12 @@
 package dk.openesdh.project.rooms.services;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -122,6 +121,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
     private static final String ACCEPT_URL = "page/accept-invite";
     private static final String REJECT_URL = "page/reject-invite";
+    private static final String CASE_SITES_QUERY = "SELECT s.cmis:objectId FROM st:site AS s JOIN oe:caseId AS cid ON s.cmis:objectId=cid.cmis:objectId";
 
     @Override
     public NodeRef createCaseSite(CaseSite site) {
@@ -179,8 +179,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
                 : site.getDescription();
         Pair<SiteInfo, NodeRef> siteDocLibPair = tr.runInNewTransaction(() -> {
             SiteInfo siteInfo = siteService.createSite("site-dashboard", site.getShortName(), site.getTitle(),
-                    siteDescription,
-                    SiteVisibility.MODERATED);
+                    siteDescription, SiteVisibility.PRIVATE);
 
             Map<QName, Serializable> properties = new HashMap<>();
             properties.put(OpenESDHModel.PROP_OE_CASE_ID, site.getCaseId());
@@ -271,20 +270,25 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
     @Override
     public List<CaseSite> getCaseSites(String caseId) {
-        NodeRef siteRoot = siteService.getSiteRoot();
+        if (Strings.isNullOrEmpty(caseId)) {
+            return Collections.emptyList();
+        }
 
-        if (Strings.isNullOrEmpty(caseId) || siteRoot == null) {
+        String query = new StringBuilder(256).append(CASE_SITES_QUERY).append(" WHERE cid.oe:caseId='")
+                .append(caseId).append("'").toString();
+
+        return queryCaseSites(query);
+    }
+
+    private List<CaseSite> queryCaseSites(String query) {
+        NodeRef siteRoot = siteService.getSiteRoot();
+        if (Objects.isNull(siteRoot)) {
             return Collections.emptyList();
         }
 
         SearchParameters sp = new SearchParameters();
         sp.addStore(siteRoot.getStoreRef());
         sp.setLanguage(SearchService.LANGUAGE_CMIS_ALFRESCO);
-
-        String query = new StringBuilder(256)
-                .append("SELECT s.cmis:objectId FROM st:site AS s JOIN oe:caseId AS cid ON s.cmis:objectId=cid.cmis:objectId WHERE cid.oe:caseId='")
-                .append(caseId)
-                .append("'").toString();
         sp.setQuery(query);
 
         ResultSet results = null;
@@ -364,10 +368,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
     @Override
     public List<CaseSite> getCaseSites() {
-        return nodeService.getChildAssocs(siteService.getSiteRoot(), new HashSet<QName>(Arrays.asList(SiteModel.TYPE_SITE)))
-              .stream()
-              .map(assoc -> getCaseSite(assoc.getChildRef()))
-              .collect(Collectors.toList());
+        return queryCaseSites(CASE_SITES_QUERY);
     }
 
     @Override
