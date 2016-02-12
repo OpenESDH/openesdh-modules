@@ -55,8 +55,13 @@ public class CaseSitesWebScript {
         return WebScriptUtils.jsonResolution(json);
     }
 
+    @Uri("/api/openesdh/case/sites")
+    public Resolution getSites() throws IOException {
+        return WebScriptUtils.jsonResolution(caseSitesService.getCaseSites());
+    }
+
     @Uri("/api/openesdh/case/{caseId}/sites")
-    public Resolution getSites(@UriVariable(WebScriptUtils.CASE_ID) String caseId) throws IOException {
+    public Resolution getCaseSites(@UriVariable(WebScriptUtils.CASE_ID) String caseId) throws IOException {
         return WebScriptUtils.jsonResolution(caseSitesService.getCaseSites(caseId));
     }
 
