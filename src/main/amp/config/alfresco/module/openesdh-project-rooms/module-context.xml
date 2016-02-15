@@ -8,5 +8,5 @@
     http://www.springframework.org/schema/context
     http://www.springframework.org/schema/context/spring-context-3.0.xsd">
     <context:annotation-config/>
-    <context:component-scan base-package="dk.openesdh.project.rooms.services, dk.openesdh.project.rooms.webscripts" />
+    <context:component-scan base-package="dk.openesdh.project.rooms.tenant, dk.openesdh.project.rooms.services, dk.openesdh.project.rooms.webscripts" />
 </beans>
