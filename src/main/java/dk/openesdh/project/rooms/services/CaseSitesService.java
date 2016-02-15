@@ -60,4 +60,11 @@ public interface CaseSitesService {
      */
     CaseSite getCaseSite(String shortName);
 
+    /**
+     * Closes case site and copies provided documents back to the case
+     * 
+     * @param site
+     */
+    void closeCaseSite(CaseSite site);
+
 }

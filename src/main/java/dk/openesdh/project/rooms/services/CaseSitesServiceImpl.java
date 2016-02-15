@@ -47,15 +47,12 @@ import com.google.common.base.Strings;
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.project.rooms.model.CaseSite.SiteMember;
 import dk.openesdh.project.rooms.model.CaseSite.SiteParty;
-import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.ContactInfo;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.contacts.ContactService;
-import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.services.lock.OELockService;
 
 @Service("CaseSitesService")
 public class CaseSitesServiceImpl implements CaseSitesService {
@@ -104,14 +101,6 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     @Qualifier("CaseSiteDocumentsService")
     private CaseSiteDocumentsService caseSiteDocumentsService;
     @Autowired
-    @Qualifier("CaseDocumentCopyService")
-    private CaseDocumentCopyService caseDocumentCopyService;
-
-    @Autowired
-    @Qualifier("OELockService")
-    private OELockService oeLockService;
-
-    @Autowired
     @Qualifier("policyComponent")
     private PolicyComponent policyComponent;
 
@@ -137,7 +126,10 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     // Fix for non-working SiteService.beforePurgeNode
     public void beforeDeleteSite(NodeRef nodeRef) {
         String shortName = siteService.getSiteShortName(nodeRef);
-        deleteSiteGroups(shortName);
+        tr.runAsSystem(() -> {
+            deleteSiteGroups(shortName);
+            return null;
+        });
     }
 
     private void deleteSiteGroups(String shortName) {
@@ -193,7 +185,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         final NodeRef documentLibrary = siteDocLibPair.getSecond();
 
         try {
-            copySiteDocuments(site, documentLibrary);
+            caseSiteDocumentsService.copySiteDocuments(site, documentLibrary);
 
             inviteSiteMembers(site);
 
@@ -244,13 +236,6 @@ public class CaseSitesServiceImpl implements CaseSitesService {
                 ContentModel.TYPE_FOLDER, properties).getChildRef();
         nodeService.addAspect(documentLibrary, OpenESDHModel.ASPECT_DOCUMENT_CONTAINER, null);
         return documentLibrary;
-    }
-
-    protected void copySiteDocuments(CaseSite site, NodeRef targetFolder) throws Exception {
-        for (CaseDocument document : site.getSiteDocuments()) {
-            caseDocumentCopyService.copyDocumentToFolderRetainVersionLabels(document, targetFolder);
-            oeLockService.lock(new NodeRef(document.getNodeRef()), true);
-        }
     }
 
     protected void inviteSiteMembers(CaseSite site) {
@@ -375,5 +360,19 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     public CaseSite getCaseSite(String shortName) {
         NodeRef siteNodeRef = siteService.getSite(shortName).getNodeRef();
         return getCaseSite(siteNodeRef);
+    }
+
+    @Override
+    public void closeCaseSite(CaseSite siteData) {
+        CaseSite site = getCaseSite(siteData.getShortName());
+        site.setSiteDocuments(siteData.getSiteDocuments());
+        tr.runInTransaction(() -> {
+            tr.runInNewTransaction(() -> {
+                caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
+                return null;
+            });
+            siteService.deleteSite(siteData.getShortName());
+            return null;
+        });
     }
 }
