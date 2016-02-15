@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import dk.openesdh.project.rooms.model.CaseSite;
-import dk.openesdh.project.rooms.model.CaseSiteDocument;
 import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.CaseDocumentAttachment;
 import dk.openesdh.repo.services.cases.CaseService;
@@ -65,27 +64,6 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
             caseDocumentCopyService.copyDocumentToFolderRetainVersionLabels(document, targetFolder);
             oeLockService.lock(new NodeRef(document.getNodeRef()), true);
         }
-    }
-    
-    @Override
-    public CaseSiteDocument getCaseSiteDocument(NodeRef nodeRef) {
-        String name = nodeService.getProperty(nodeRef, ContentModel.PROP_NAME).toString();
-        String type = nodeService.getType(nodeRef).toString();
-        return new CaseSiteDocument(name, nodeRef.toString(), type);
-    }
-
-    @Override
-    public List<CaseSiteDocument> getCaseDocuments(NodeRef caseNodeRef) {
-        return documentService.getDocumentsForCase(caseNodeRef)
-                .stream()
-                .map(assoc -> getCaseSiteDocument(assoc.getChildRef()))
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<CaseSiteDocument> getCaseSiteDocuments(String siteShortName) {
-        return getSiteDocumentsRefs(siteShortName).map(this::getCaseSiteDocument)
-                .collect(Collectors.toList());
     }
     
     @Override

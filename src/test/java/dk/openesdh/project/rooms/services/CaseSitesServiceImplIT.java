@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -22,6 +23,7 @@ import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.cmr.version.Version;
 import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.cmr.version.VersionType;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,10 +46,13 @@ import dk.openesdh.repo.helper.CaseDocumentTestHelper;
 import dk.openesdh.repo.helper.CaseHelper;
 import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.CaseDocumentAttachment;
+import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.model.ResultSet;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
+import dk.openesdh.repo.services.documents.DocumentCategoryServiceImpl;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.documents.DocumentTypeServiceImpl;
 import dk.openesdh.repo.services.lock.OELockService;
 
 @RunWith(RemoteTestRunner.class)
@@ -105,6 +110,14 @@ public class CaseSitesServiceImplIT {
     private VersionService versionService;
 
     @Autowired
+    @Qualifier("DocumentTypeService")
+    private DocumentTypeServiceImpl documentTypeService;
+
+    @Autowired
+    @Qualifier("DocumentCategoryService")
+    private DocumentCategoryServiceImpl documentCategoryService;
+
+    @Autowired
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
@@ -114,6 +127,7 @@ public class CaseSitesServiceImplIT {
     private static final String TEST_DOCUMENT_FILE_NAME = TEST_DOCUMENT_NAME + ".txt";
     private static final String TEST_DOCUMENT_ATTACHMENT_NAME = "TestDocumentAttachment";
     private static final String TEST_DOCUMENT_ATTACHMENT_FILE_NAME = TEST_DOCUMENT_ATTACHMENT_NAME + ".txt";
+    private static final String NEW_SITE_DOC_NAME = "New site document";
 
     private NodeRef testFolder;
     private NodeRef testCase1;
@@ -209,6 +223,86 @@ public class CaseSitesServiceImplIT {
                 siteDocAttachmentVersion.getVersionLabel());
     }
 
+    @Test
+    public void shouldCloseSiteCopySiteDocumentsBackToCase() {
+        caseSiteService.createCaseSite(siteWithDocumentAndAttachment());
+        final String SITE_DOC_CONTENT = "Site doc content";
+        final String SITE_DOC_ATTACHMENT_CONTENT = "Site doc attachment content";
+        List<CaseDocument> siteDocs = caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
+        CaseDocument siteDoc = siteDocs.get(0);
+        createNewDocVersion(new NodeRef(siteDoc.getMainDocNodeRef()), SITE_DOC_CONTENT, VersionType.MINOR);
+        createNewDocVersion(siteDoc.getAttachments().get(0).nodeRefObject(), SITE_DOC_ATTACHMENT_CONTENT,
+                VersionType.MINOR);
+
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        site.setSiteDocuments(siteDocs);
+
+        caseSiteService.closeCaseSite(site);
+
+        Assert.assertFalse("The site should be deleted when project room is closed",
+                siteService.hasSite(TEST_CASE_NAME1));
+
+        Version caseDocVersion = versionService.getCurrentVersion(testDocument);
+        Assert.assertEquals("Wrong case document version after copy back to case", "1.1",
+                caseDocVersion.getVersionLabel());
+        String docResultContent = contentService.getReader(testDocument, ContentModel.PROP_CONTENT)
+                .getContentString();
+        Assert.assertEquals("Wrong case doc content after copy back to case", SITE_DOC_CONTENT, docResultContent);
+
+        Version caseDocAttachmentVersion = versionService.getCurrentVersion(testDocumentAttachment);
+        Assert.assertEquals("Wrong case document attachment version after copy back to case", "1.1",
+                caseDocAttachmentVersion.getVersionLabel());
+        String attachmentResultContent = contentService.getReader(testDocumentAttachment, ContentModel.PROP_CONTENT)
+                .getContentString();
+        Assert.assertEquals("Wrong case doc content after copy back to case", SITE_DOC_ATTACHMENT_CONTENT,
+                attachmentResultContent);
+    }
+
+    @Test
+    public void shouldCloseSiteAndCopyNewSiteDocumentToCase() {
+        caseSiteService.createCaseSite(site());
+        tr.runInTransaction(() -> {
+            createNewSiteDocument();
+            return null;
+        });
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        List<CaseDocument> siteDocs = caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
+        site.setSiteDocuments(siteDocs);
+
+        List<CaseDocument> caseDocsBeforeSiteClosed = documentService.getCaseDocumentsWithAttachments(testCaseId);
+        
+        Optional<CaseDocument> newSiteDocInCase = caseDocsBeforeSiteClosed.stream()
+                .filter(doc -> NEW_SITE_DOC_NAME.equals(doc.getTitle()))
+                .findAny();
+        
+        Assert.assertFalse("The case shouldn't contain site document before site is closed", newSiteDocInCase.isPresent());
+        
+        caseSiteService.closeCaseSite(site);
+
+        List<CaseDocument> caseDocsAfterSiteClosed = documentService.getCaseDocumentsWithAttachments(testCaseId);
+        newSiteDocInCase = caseDocsAfterSiteClosed.stream()
+                .filter(doc -> NEW_SITE_DOC_NAME.equals(doc.getTitle()))
+                .findAny();
+        Assert.assertTrue("The case should contain newly created site document after site is closed",
+                newSiteDocInCase.isPresent());
+    }
+
+    private void createNewSiteDocument() {
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        NodeRef siteDocsFolder = new NodeRef(site.getDocumentsFolderRef());
+        Map<QName, Serializable> props = new HashMap<>();
+        props.put(ContentModel.PROP_NAME, NEW_SITE_DOC_NAME);
+        props.put(OpenESDHModel.PROP_DOC_TYPE,
+                documentTypeService.getDocumentTypes().stream().skip(1).findFirst().get().getNodeRef());
+        props.put(OpenESDHModel.PROP_DOC_CATEGORY,
+                documentCategoryService.getDocumentCategories().stream().skip(1).findFirst().get().getNodeRef());
+        NodeRef siteDocRef = nodeService.createNode(siteDocsFolder, ContentModel.ASSOC_CONTAINS,
+                QName.createQName("newSiteDoc"), ContentModel.TYPE_CONTENT, props).getChildRef();
+        ContentWriter writer = contentService.getWriter(siteDocRef, ContentModel.PROP_CONTENT, true);
+        writer.setMimetype("text");
+        writer.putContent("site document content");
+    }
+
     private CaseSite site() {
         CaseSite site = new CaseSite();
         site.setShortName(TEST_CASE_NAME1);
@@ -249,20 +343,17 @@ public class CaseSitesServiceImplIT {
     }
 
     private void createNewVersionOfCaseDocAndAttachment() {
+        createNewDocVersion(testDocument, "some new content", VersionType.MAJOR);
+        createNewDocVersion(testDocumentAttachment, "attachment some new content", VersionType.MINOR);
+    }
+
+    private void createNewDocVersion(NodeRef docRef, String content, VersionType versionType) {
         Map<String, Serializable> versionProps = new HashMap<>();
-        versionProps.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
-        NodeRef workingCopy = checkOutCheckInService.checkout(testDocument);
+        versionProps.put(VersionModel.PROP_VERSION_TYPE, versionType);
+        NodeRef workingCopy = checkOutCheckInService.checkout(docRef);
         ContentWriter writer = contentService.getWriter(workingCopy, ContentModel.PROP_CONTENT, true);
         writer.setMimetype("text");
-        writer.putContent("some new content");
+        writer.putContent(content);
         checkOutCheckInService.checkin(workingCopy, versionProps);
-
-        versionProps.put(VersionModel.PROP_VERSION_TYPE, VersionType.MINOR);
-        NodeRef attachmentWorkingCopy = checkOutCheckInService.checkout(testDocumentAttachment);
-        ContentWriter attachmentWriter = contentService.getWriter(attachmentWorkingCopy, ContentModel.PROP_CONTENT,
-                true);
-        attachmentWriter.setMimetype("text");
-        attachmentWriter.putContent("attachment some new content");
-        checkOutCheckInService.checkin(attachmentWorkingCopy, versionProps);
     }
 }
