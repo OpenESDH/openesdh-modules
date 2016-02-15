@@ -75,6 +75,12 @@ public class CaseSitesWebScript {
         return WebScriptUtils.jsonResolution(caseSiteDocumentsService.getCaseSiteDocumentsJson(shortName));
     }
     
+    @Uri("/api/openesdh/case/sites/{shortName}/documents")
+    public Resolution getSiteDocumentsWithAttachments(@UriVariable("shortName") String shortName) {
+        return WebScriptUtils.jsonResolution(
+                caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(shortName));
+    }
+
     @Uri(value = "/api/openesdh/case/sites", method = HttpMethod.POST)
     public Resolution createSite(@Attribute CaseSite site) throws IOException {
         NodeRef siteNodeRef = caseSitesService.createCaseSite(site);
@@ -85,6 +91,12 @@ public class CaseSitesWebScript {
     @Uri(value = "/api/openesdh/case/sites", method = HttpMethod.PUT)
     public Resolution updateSite(@Attribute CaseSite site) throws IOException {
         caseSitesService.updateCaseSite(site);
+        return WebScriptUtils.jsonResolution(site);
+    }
+
+    @Uri(value = "/api/openesdh/case/sites/close", method = HttpMethod.POST)
+    public Resolution closeSite(@Attribute CaseSite site) throws IOException {
+        caseSitesService.closeCaseSite(site);
         return WebScriptUtils.jsonResolution(site);
     }
 }
