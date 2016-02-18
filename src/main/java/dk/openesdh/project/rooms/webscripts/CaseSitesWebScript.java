@@ -99,4 +99,10 @@ public class CaseSitesWebScript {
         caseSitesService.closeCaseSite(site);
         return WebScriptUtils.jsonResolution(site);
     }
+
+    @Uri(value = "/api/openesdh/case/sites/members/invite", method = HttpMethod.POST)
+    public Resolution inviteParticipants(@Attribute CaseSite site) throws IOException {
+        caseSitesService.inviteParticipants(site);
+        return WebScriptUtils.jsonResolution(site);
+    }
 }

@@ -352,6 +352,12 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     }
 
     @Override
+    public void inviteParticipants(CaseSite site) {
+        inviteSiteMembers(site);
+        inviteSiteParties(site);
+    }
+
+    @Override
     public List<CaseSite> getCaseSites() {
         return queryCaseSites(CASE_SITES_QUERY);
     }

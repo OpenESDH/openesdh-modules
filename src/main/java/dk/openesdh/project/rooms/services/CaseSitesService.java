@@ -67,4 +67,11 @@ public interface CaseSitesService {
      */
     void closeCaseSite(CaseSite site);
 
+    /**
+     * Invites participants to the provided site.
+     * 
+     * @param site
+     */
+    void inviteParticipants(CaseSite site);
+
 }
