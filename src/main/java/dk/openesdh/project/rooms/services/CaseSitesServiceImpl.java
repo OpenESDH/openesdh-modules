@@ -17,6 +17,7 @@ import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.repo.site.SiteModel;
 import org.alfresco.service.cmr.invitation.Invitation;
@@ -186,10 +187,14 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
         try {
             caseSiteDocumentsService.copySiteDocuments(site, documentLibrary);
-
-            inviteSiteMembers(site);
-
-            inviteSiteParties(site);
+            String user = AuthenticationUtil.getRunAsUser();
+            new Thread(() -> {
+                AuthenticationUtil.runAs(() -> {
+                    inviteSiteMembers(site);
+                    inviteSiteParties(site);
+                    return null;
+                } , user);
+            }).start();
         } catch (Exception ex) {
             tr.runInNewTransactionAsAdmin(() -> {
                 siteService.deleteSite(createdSite.getShortName());
