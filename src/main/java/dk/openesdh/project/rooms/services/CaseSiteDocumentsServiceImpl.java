@@ -1,8 +1,8 @@
 package dk.openesdh.project.rooms.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -12,11 +12,12 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
-import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.site.SiteService;
+import org.alfresco.service.cmr.version.Version;
+import org.alfresco.service.cmr.version.VersionService;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.CaseDocumentAttachment;
+import dk.openesdh.repo.services.BehaviourFilterService;
+import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
 import dk.openesdh.repo.services.documents.DocumentService;
@@ -56,6 +59,17 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     @Autowired
     @Qualifier("OELockService")
     private OELockService oeLockService;
+    @Autowired
+    @Qualifier("CaseDocumentVersionService")
+    private VersionService versionService;
+    @Autowired
+    @Qualifier("NodeService")
+    private NodeService nodeService;
+    @Autowired
+    private BehaviourFilterService behaviourFilterService;
+    @Autowired
+    @Qualifier("TransactionRunner")
+    private TransactionRunner tr;
 
 
     @Override
@@ -87,38 +101,82 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     }
 
     @Override
-    public void copySiteDocumentsBackToCase(CaseSite site) {
-        NodeRef caseRef = caseService.getCaseById(site.getCaseId());
+    public void copySiteDocumentsBackToCase(CaseSite siteDataToCopyBack) {
+        NodeRef caseRef = caseService.getCaseById(siteDataToCopyBack.getCaseId());
         NodeRef caseDocsFolderRef = caseService.getDocumentsFolder(caseRef);
-        Map<NodeRef, CaseDocument> caseDocuments = documentService.getCaseDocumentsWithAttachments(site.getCaseId())
+        Map<NodeRef, CaseDocument> caseDocuments = documentService.getCaseDocumentsWithAttachments(siteDataToCopyBack.getCaseId())
                 .stream()
                 .collect(Collectors.toMap(CaseDocument::nodeRefObject, Function.identity()));
 
-        unlockCaseDocuments(site.getShortName(), caseDocuments);
-        
-        if (site.getSiteDocuments().isEmpty()) {
-            return;
-        }
+        List<NodeRef> nodesToRestoreAutoVersion = tr.runInNewTransaction(() -> {
+            List<NodeRef> restoreAutoVersion = unlockCaseDocsDisableAutoVersion(siteDataToCopyBack.getShortName(),
+                    caseDocuments);
 
-        for (CaseDocument siteDocument : site.getSiteDocuments()) {
-            Optional<CaseDocument> originalDoc = getDocOriginal(siteDocument.nodeRefObject(), caseDocuments);
-            if (originalDoc.isPresent()) {
-                copySiteDocumentBackToCase(siteDocument, originalDoc.get());
-            } else {
-                copySiteDocAsNewCaseDocument(siteDocument, caseDocsFolderRef);
+            if (siteDataToCopyBack.getSiteDocuments().isEmpty()) {
+                return restoreAutoVersion;
+            }
+
+            for (CaseDocument siteDocument : siteDataToCopyBack.getSiteDocuments()) {
+                Optional<CaseDocument> originalDoc = getDocOriginal(siteDocument.nodeRefObject(), caseDocuments);
+                if (originalDoc.isPresent()) {
+                    copySiteDocumentBackToCase(siteDocument, originalDoc.get());
+                } else {
+                    copySiteDocAsNewCaseDocument(siteDocument, caseDocsFolderRef);
+                }
+            }
+            return restoreAutoVersion;
+        });
+
+        behaviourFilterService.executeWithoutBehavior(() -> {
+            nodesToRestoreAutoVersion.stream().forEach(this::enableAutoVersion);
+        });
+
+    }
+    
+    private List<NodeRef> unlockCaseDocsDisableAutoVersion(String siteShortName,
+            Map<NodeRef, CaseDocument> caseDocuments) {
+        return getSiteDocumentsRefs(siteShortName)
+                .map(siteDoc -> getDocOriginal(siteDoc, caseDocuments))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::unlockDoc)
+                .map(this::disableAutoVersion)
+                .flatMap(nodes -> nodes.stream()).collect(Collectors.toList());
+    }
+
+    private CaseDocument unlockDoc(CaseDocument caseDoc) {
+        oeLockService.unlock(caseDoc.nodeRefObject(), true);
+        return caseDoc;
+    }
+
+    private List<NodeRef> disableAutoVersion(CaseDocument caseDoc) {
+        List<NodeRef> nodesToRestoreAutoVersion = new ArrayList<>();
+        NodeRef mainDocRef = new NodeRef(caseDoc.getMainDocNodeRef());
+        if (disableAutoVersion(mainDocRef)) {
+            nodesToRestoreAutoVersion.add(mainDocRef);
+        }
+        for (CaseDocumentAttachment attachment : caseDoc.getAttachments()) {
+            if (disableAutoVersion(attachment.nodeRefObject())) {
+                nodesToRestoreAutoVersion.add(attachment.nodeRefObject());
             }
         }
+        return nodesToRestoreAutoVersion;
     }
     
-    private void unlockCaseDocuments(String siteShortName, Map<NodeRef, CaseDocument> caseDocuments){
-        getSiteDocumentsRefs(siteShortName)
-            .map(siteDoc -> getDocOriginal(siteDoc, caseDocuments))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(CaseDocument::nodeRefObject)
-            .forEach(doc -> oeLockService.unlock(doc, true));
+    private boolean disableAutoVersion(NodeRef nodeRef) {
+        Optional<Boolean> autoVersion = Optional.ofNullable(
+                (Boolean) nodeService.getProperty(nodeRef, ContentModel.PROP_AUTO_VERSION));
+        if (autoVersion.isPresent() && autoVersion.get() == true) {
+            nodeService.setProperty(nodeRef, ContentModel.PROP_AUTO_VERSION, false);
+            return true;
+        }
+        return false;
     }
     
+    private void enableAutoVersion(NodeRef nodeRef) {
+        nodeService.setProperty(nodeRef, ContentModel.PROP_AUTO_VERSION, true);
+    }
+
     private void copySiteDocAsNewCaseDocument(CaseDocument siteDocument, NodeRef caseDocsFolderRef) {
         caseDocumentCopyService.copyDocumentToFolder(siteDocument.nodeRefObject(), caseDocsFolderRef);
     }
@@ -127,36 +185,35 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
         NodeRef originalDocRef = new NodeRef(originalCaseDocument.getMainDocNodeRef());
         NodeRef originalDocRecord = originalCaseDocument.nodeRefObject();
 
-        createDocNewVersion(originalDocRef, new NodeRef(siteDocument.getMainDocNodeRef()));
+        NodeRef siteMainDocRef = new NodeRef(siteDocument.getMainDocNodeRef());
+        if (isDocVersionChanged(originalDocRef, siteMainDocRef)) {
+            caseDocumentCopyService.copyDocContentRetainVersionLabel(siteMainDocRef, originalDocRef);
+        }
         
         Map<NodeRef, CaseDocumentAttachment> caseDocAttachments = originalCaseDocument.getAttachments()
                 .stream()
                 .collect(Collectors.toMap(CaseDocumentAttachment::nodeRefObject, Function.identity()));
         
-        for(CaseDocumentAttachment attachment : siteDocument.getAttachments()){
-            NodeRef attachmentRef = attachment.nodeRefObject();
-            Optional<CaseDocumentAttachment> attachmentOriginal = getDocOriginal(attachmentRef,
+        for(CaseDocumentAttachment siteAttachment : siteDocument.getAttachments()){
+            NodeRef siteAttachmentRef = siteAttachment.nodeRefObject();
+            Optional<CaseDocumentAttachment> attachmentOriginal = getDocOriginal(siteAttachmentRef,
                     caseDocAttachments);
-            if(attachmentOriginal.isPresent()){
-                createDocNewVersion(attachmentOriginal.get().nodeRefObject(), attachmentRef);
+            if (attachmentOriginal.isPresent()
+                    && isDocVersionChanged(attachmentOriginal.get().nodeRefObject(), siteAttachmentRef)) {
+                caseDocumentCopyService.copyDocContentRetainVersionLabel(
+                        siteAttachmentRef, attachmentOriginal.get().nodeRefObject());
             }else{
-                caseDocumentCopyService.copyDocument(attachmentRef, originalDocRecord, false);
+                caseDocumentCopyService.copyDocument(siteAttachmentRef, originalDocRecord, false);
             }
         }
     }
 
-    private void createDocNewVersion(NodeRef oldVersionContent, NodeRef newVersionContentRef) {
-        ContentReader newContent = contentService.getReader(newVersionContentRef, ContentModel.PROP_CONTENT);
-        if (Objects.isNull(newContent)) {
-            return;
-        }
-        NodeRef workingCopy = checkOutCheckInService.checkout(oldVersionContent);
-        ContentWriter writer = contentService.getWriter(workingCopy, ContentModel.PROP_CONTENT, true);
-        writer.setMimetype(newContent.getMimetype());
-        writer.putContent(newContent);
-        checkOutCheckInService.checkin(workingCopy, null);
+    private boolean isDocVersionChanged(NodeRef original, NodeRef copy) {
+        Version originalVersion = versionService.getCurrentVersion(original);
+        Version copyVersion = versionService.getCurrentVersion(copy);
+        return !originalVersion.getVersionLabel().equals(copyVersion.getVersionLabel());
     }
-    
+
     private <T> Optional<T> getDocOriginal(NodeRef docRef, Map<NodeRef, T> docList) {
         return nodeService.getTargetAssocs(docRef, ContentModel.ASSOC_ORIGINAL)
                 .stream()

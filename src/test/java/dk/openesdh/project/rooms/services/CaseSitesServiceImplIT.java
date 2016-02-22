@@ -228,9 +228,10 @@ public class CaseSitesServiceImplIT {
         caseSiteService.createCaseSite(siteWithDocumentAndAttachment());
         final String SITE_DOC_CONTENT = "Site doc content";
         final String SITE_DOC_ATTACHMENT_CONTENT = "Site doc attachment content";
-        List<CaseDocument> siteDocs = caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
+        List<CaseDocument> siteDocs = caseSiteDocumentsService
+                .getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
         CaseDocument siteDoc = siteDocs.get(0);
-        createNewDocVersion(new NodeRef(siteDoc.getMainDocNodeRef()), SITE_DOC_CONTENT, VersionType.MINOR);
+        createNewDocVersion(new NodeRef(siteDoc.getMainDocNodeRef()), SITE_DOC_CONTENT, VersionType.MAJOR);
         createNewDocVersion(siteDoc.getAttachments().get(0).nodeRefObject(), SITE_DOC_ATTACHMENT_CONTENT,
                 VersionType.MINOR);
 
@@ -243,7 +244,7 @@ public class CaseSitesServiceImplIT {
                 siteService.hasSite(TEST_CASE_NAME1));
 
         Version caseDocVersion = versionService.getCurrentVersion(testDocument);
-        Assert.assertEquals("Wrong case document version after copy back to case", "1.1",
+        Assert.assertEquals("Wrong case document version after copy back to case", "2.0",
                 caseDocVersion.getVersionLabel());
         String docResultContent = contentService.getReader(testDocument, ContentModel.PROP_CONTENT)
                 .getContentString();

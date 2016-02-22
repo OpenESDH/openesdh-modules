@@ -378,10 +378,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         CaseSite site = getCaseSite(siteData.getShortName());
         site.setSiteDocuments(siteData.getSiteDocuments());
         tr.runInTransaction(() -> {
-            tr.runInNewTransaction(() -> {
-                caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
-                return null;
-            });
+            caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
             siteService.deleteSite(siteData.getShortName());
             return null;
         });
