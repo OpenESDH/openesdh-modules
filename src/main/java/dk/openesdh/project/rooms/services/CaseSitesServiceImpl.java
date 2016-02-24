@@ -41,6 +41,7 @@ import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
@@ -109,8 +110,11 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
-    private static final String ACCEPT_URL = "page/accept-invite";
-    private static final String REJECT_URL = "page/reject-invite";
+    @Value("${opene.site.invitation.accept.url}")
+    private String acceptUrl;
+    @Value("${opene.site.invitation.reject.url}")
+    private String rejectUrl;
+
     private static final String CASE_SITES_QUERY = "SELECT s.cmis:objectId FROM st:site AS s JOIN oe:caseId AS cid ON s.cmis:objectId=cid.cmis:objectId";
 
     @Override
@@ -190,8 +194,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
             String user = AuthenticationUtil.getRunAsUser();
             new Thread(() -> {
                 AuthenticationUtil.runAs(() -> {
-                    inviteSiteMembers(site);
-                    inviteSiteParties(site);
+                    inviteParticipants(site);
                     return null;
                 } , user);
             }).start();
@@ -246,7 +249,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     protected void inviteSiteMembers(CaseSite site) {
         for (SiteMember member : site.getSiteMembers()) {
             invitationService.inviteNominated(member.getAuthority(), Invitation.ResourceType.WEB_SITE,
-                    site.getShortName(), member.getRole(), ACCEPT_URL, REJECT_URL);
+                    site.getShortName(), member.getRole(), acceptUrl, rejectUrl);
         }
     }
 
@@ -254,7 +257,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         for (SiteParty party : site.getSiteParties()) {
             ContactInfo partyContact = contactService.getContactInfo(new NodeRef(party.getNodeRef()));
             invitationService.inviteNominated(partyContact.getName(), "", partyContact.getEmail(),
-                    Invitation.ResourceType.WEB_SITE, site.getShortName(), party.getRole(), ACCEPT_URL, REJECT_URL);
+                    Invitation.ResourceType.WEB_SITE, site.getShortName(), party.getRole(), acceptUrl, rejectUrl);
         }
     }
 
