@@ -55,6 +55,7 @@ import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.contacts.ContactService;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.tenant.TenantOpeneModulesService;
 
 @Service("CaseSitesService")
 public class CaseSitesServiceImpl implements CaseSitesService {
@@ -110,6 +111,10 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
+    @Autowired
+    @Qualifier("TenantOpeneModulesService")
+    private TenantOpeneModulesService tenantOpeneModulesService;
+
     @Value("${opene.site.invitation.accept.url}")
     private String acceptUrl;
     @Value("${opene.site.invitation.reject.url}")
@@ -133,6 +138,46 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         String shortName = siteService.getSiteShortName(nodeRef);
         tr.runAsSystem(() -> {
             deleteSiteGroups(shortName);
+            return null;
+        });
+    }
+
+    @Override
+    public void updateCaseSite(CaseSite site) {
+        SiteInfo siteInfo = siteService.getSite(site.getShortName());
+        siteInfo.setDescription(site.getDescription());
+        siteInfo.setTitle(site.getTitle());
+        siteInfo.setVisibility(site.getVisibility());
+        siteService.updateSite(siteInfo);
+    }
+
+    @Override
+    public void inviteParticipants(CaseSite site) {
+        String context = tenantOpeneModulesService.getCurrentTenantUIContext().map(c -> "/" + c).orElse("");
+        String acceptUrl = context + this.acceptUrl;
+        String rejectUrl = context + this.rejectUrl;
+        inviteSiteMembers(site, acceptUrl, rejectUrl);
+        inviteSiteParties(site, acceptUrl, rejectUrl);
+    }
+
+    @Override
+    public List<CaseSite> getCaseSites() {
+        return queryCaseSites(CASE_SITES_QUERY);
+    }
+
+    @Override
+    public CaseSite getCaseSite(String shortName) {
+        NodeRef siteNodeRef = siteService.getSite(shortName).getNodeRef();
+        return getCaseSite(siteNodeRef);
+    }
+
+    @Override
+    public void closeCaseSite(CaseSite siteData) {
+        CaseSite site = getCaseSite(siteData.getShortName());
+        site.setSiteDocuments(siteData.getSiteDocuments());
+        tr.runInTransaction(() -> {
+            caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
+            siteService.deleteSite(siteData.getShortName());
             return null;
         });
     }
@@ -246,14 +291,14 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         return documentLibrary;
     }
 
-    protected void inviteSiteMembers(CaseSite site) {
+    protected void inviteSiteMembers(CaseSite site, String acceptUrl, String rejectUrl) {
         for (SiteMember member : site.getSiteMembers()) {
             invitationService.inviteNominated(member.getAuthority(), Invitation.ResourceType.WEB_SITE,
                     site.getShortName(), member.getRole(), acceptUrl, rejectUrl);
         }
     }
 
-    protected void inviteSiteParties(CaseSite site) {
+    protected void inviteSiteParties(CaseSite site, String acceptUrl, String rejectUrl) {
         for (SiteParty party : site.getSiteParties()) {
             ContactInfo partyContact = contactService.getContactInfo(new NodeRef(party.getNodeRef()));
             invitationService.inviteNominated(partyContact.getName(), "", partyContact.getEmail(),
@@ -348,42 +393,5 @@ public class CaseSitesServiceImpl implements CaseSitesService {
             return SiteVisibility.PRIVATE;
         }
 
-    }
-
-    @Override
-    public void updateCaseSite(CaseSite site) {
-        SiteInfo siteInfo = siteService.getSite(site.getShortName());
-        siteInfo.setDescription(site.getDescription());
-        siteInfo.setTitle(site.getTitle());
-        siteInfo.setVisibility(site.getVisibility());
-        siteService.updateSite(siteInfo);
-    }
-
-    @Override
-    public void inviteParticipants(CaseSite site) {
-        inviteSiteMembers(site);
-        inviteSiteParties(site);
-    }
-
-    @Override
-    public List<CaseSite> getCaseSites() {
-        return queryCaseSites(CASE_SITES_QUERY);
-    }
-
-    @Override
-    public CaseSite getCaseSite(String shortName) {
-        NodeRef siteNodeRef = siteService.getSite(shortName).getNodeRef();
-        return getCaseSite(siteNodeRef);
-    }
-
-    @Override
-    public void closeCaseSite(CaseSite siteData) {
-        CaseSite site = getCaseSite(siteData.getShortName());
-        site.setSiteDocuments(siteData.getSiteDocuments());
-        tr.runInTransaction(() -> {
-            caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
-            siteService.deleteSite(siteData.getShortName());
-            return null;
-        });
     }
 }
