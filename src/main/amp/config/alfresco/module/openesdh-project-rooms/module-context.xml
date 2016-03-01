@@ -33,6 +33,14 @@
         <property name="transactionRunner" ref="TransactionRunner"/>
     </bean>
     
+    <bean id="${project.artifactId}_workflowBootstrap" parent="workflowDeployer">
+        <property name="labels">
+            <list>
+                <value>alfresco/messages/inviteWorkflow</value>
+            </list>
+        </property>
+    </bean>
+    
     <context:annotation-config/>
     <context:component-scan base-package="dk.openesdh.project.rooms" />    
 </beans>
