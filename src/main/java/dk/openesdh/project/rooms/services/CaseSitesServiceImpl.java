@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
@@ -237,7 +239,9 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         try {
             caseSiteDocumentsService.copySiteDocuments(site, documentLibrary);
             String user = AuthenticationUtil.getRunAsUser();
+            Locale currentLocale = I18NUtil.getLocale();
             new Thread(() -> {
+                I18NUtil.setLocale(currentLocale);
                 AuthenticationUtil.runAs(() -> {
                     inviteParticipants(site);
                     return null;
