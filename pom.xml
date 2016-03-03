@@ -5,22 +5,16 @@
     <groupId>dk.openesdh</groupId>
     <artifactId>openesdh-doc-templates</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>openesdh-doc-templates Repository AMP project</name>
+    <name>OpenESDH Document Templates AMP</name>
     <packaging>amp</packaging>
 
     <parent>
         <groupId>dk.openesdh</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>openesdh</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <properties>
-        <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
-        <openesdhrepo.version>1.0-SNAPSHOT</openesdhrepo.version>
-        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
-    </properties>
-    
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -56,21 +50,21 @@
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
-            <version>${openesdhrepo.version}</version>
+            <version>${openesdh.repo.version}</version>
             <classifier>classes</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
-            <version>${openesdhrepo.version}</version>
+            <version>${openesdh.repo.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
-            <version>${openesdhrepo.version}</version>
+            <version>${openesdh.repo.version}</version>
             <type>amp</type>
         </dependency>
         <!-- simple-case-repo -->
@@ -91,6 +85,17 @@
     
     <build>
         <plugins>
+            <plugin>
+                <!-- remove any old test data-->
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>alf_data_dev</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
