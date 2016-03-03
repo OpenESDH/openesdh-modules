@@ -52,6 +52,7 @@ import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.project.rooms.model.CaseSite.SiteMember;
 import dk.openesdh.project.rooms.model.CaseSite.SiteParty;
 import dk.openesdh.repo.model.ContactInfo;
+import dk.openesdh.repo.model.ContactType;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
@@ -305,8 +306,16 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     protected void inviteSiteParties(CaseSite site, String acceptUrl, String rejectUrl) {
         for (SiteParty party : site.getSiteParties()) {
             ContactInfo partyContact = contactService.getContactInfo(new NodeRef(party.getNodeRef()));
-            invitationService.inviteNominated(partyContact.getName(), "", partyContact.getEmail(),
-                    Invitation.ResourceType.WEB_SITE, site.getShortName(), party.getRole(), acceptUrl, rejectUrl);
+            if (ContactType.PERSON.name().equals(partyContact.getType())) {
+                invitationService.inviteNominated(partyContact.getFirstName(), partyContact.getLastName(),
+                        partyContact.getEmail(), Invitation.ResourceType.WEB_SITE, site.getShortName(),
+                        party.getRole(), acceptUrl, rejectUrl);
+            } else {
+                invitationService.inviteNominated(partyContact.getName(), partyContact.getName(),
+                        partyContact.getEmail(),
+                        Invitation.ResourceType.WEB_SITE, site.getShortName(), party.getRole(), acceptUrl,
+                        rejectUrl);
+            }
         }
     }
 
