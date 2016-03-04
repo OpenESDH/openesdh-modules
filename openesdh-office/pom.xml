@@ -63,8 +63,8 @@
         </dependency>
         <!-- simple-case-repo -->
         <dependency>
-            <groupId>dk.openesdh.case</groupId>
-            <artifactId>simple-case-repo</artifactId>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-simple-case</artifactId>
             <version>${openesdh.simple.case.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
