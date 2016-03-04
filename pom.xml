@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dk.openesdh</groupId>
+    <artifactId>openesdh-modules</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>OpenESDH Modules</name>
+    <description>OpenESDH Modules Parent</description>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.alfresco.maven</groupId>
+        <artifactId>alfresco-sdk-parent</artifactId>
+        <version>2.1.0</version>
+    </parent>
+
+    <scm>
+        <connection>https://github.com/OpenESDH/openesdh-modules</connection>
+    </scm>
+
+    <properties>
+        <alfresco.groupId>org.alfresco</alfresco.groupId>
+        <alfresco.version>5.0.d</alfresco.version>
+        <app.log.root.level>WARN</app.log.root.level>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
+        <!-- OpenESDH module versions-->
+        <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
+        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
+        <openesdh.staff.case.version>1.0.1-SNAPSHOT</openesdh.staff.case.version>
+        <openesdh.repo.version>1.0-SNAPSHOT</openesdh.repo.version>
+        <openesdh.office.version>1.0-SNAPSHOT</openesdh.office.version>
+        <openesdh.doctemplates.version>1.0-SNAPSHOT</openesdh.doctemplates.version>
+        <openesdh.project.rooms.version>1.0-SNAPSHOT</openesdh.project.rooms.version>
+    </properties>
+
+    <!-- Here we realize the connection with the Alfresco selected platform (e.g.version and edition) -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${alfresco.groupId}</groupId>
+                <artifactId>alfresco-platform-distribution</artifactId>
+                <version>${alfresco.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+	<!--
+        <module>openesdh-repo</module>
+        <module>openesdh-doc-templates-api</module>
+        <module>openesdh-doc-templates</module>
+        <module>openesdh-office</module>
+		-->
+    </modules>
+</project>
