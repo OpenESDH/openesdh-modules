@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0"
+           xmlns:cm="http://www.alfresco.org/model/content/1.0"
+           xmlns:oe="http://openesdh.dk/model/openesdh/1.0"
+           xmlns:sys="http://www.alfresco.org/model/system/1.0">
+    <view:reference view:pathref="${system.authorities_container.childname}">
+        <view:associations>
+            <sys:children>
+                <cm:authorityContainer view:childName="cm:GROUP_CaseStaffCreator">
+                    <view:aspects>
+                        <sys:referenceable/>
+                        <oe:openeType/>
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>GROUP_CaseStaffCreator</sys:node-uuid>
+                        <cm:name>GROUP_CaseStaffCreator</cm:name>
+                        <cm:authorityDisplayName>Staff Case Creator</cm:authorityDisplayName>
+                        <cm:authorityName>GROUP_CaseStaffCreator</cm:authorityName>
+                        <oe:openeType>STAFF</oe:openeType>
+                    </view:properties>
+                </cm:authorityContainer>
+                <cm:authorityContainer view:childName="cm:GROUP_CaseStaffReader">
+                    <view:aspects>
+                        <sys:referenceable/>
+                        <oe:openeType/>
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>GROUP_CaseStaffReader</sys:node-uuid>
+                        <cm:name>GROUP_CaseStaffReader</cm:name>
+                        <cm:authorityDisplayName>Staff Case Reader</cm:authorityDisplayName>
+                        <cm:authorityName>GROUP_CaseStaffReader</cm:authorityName>
+                        <oe:openeType>STAFF</oe:openeType>
+                    </view:properties>
+                </cm:authorityContainer>
+                <cm:authorityContainer view:childName="cm:GROUP_CaseStaffWriter">
+                    <view:aspects>
+                        <sys:referenceable/>
+                        <oe:openeType/>
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>GROUP_CaseStaffWriter</sys:node-uuid>
+                        <cm:name>GROUP_CaseStaffWriter</cm:name>
+                        <cm:authorityDisplayName>Staff Case Writer</cm:authorityDisplayName>
+                        <cm:authorityName>GROUP_CaseStaffWriter</cm:authorityName>
+                        <oe:openeType>STAFF</oe:openeType>
+                    </view:properties>
+                </cm:authorityContainer>
+            </sys:children>
+        </view:associations>
+    </view:reference>
+    <view:reference view:pathref="${system.zones_container.childname}/cm:AUTH.ALF">
+        <view:associations>
+            <cm:inZone>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator" view:childname="cm:GROUP_CaseStaffCreator"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffReader" view:childname="cm:GROUP_CaseStaffReader"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffWriter" view:childname="cm:GROUP_CaseStaffWriter"/>
+            </cm:inZone>
+        </view:associations>
+    </view:reference>
+    <view:reference view:pathref="${system.zones_container.childname}/cm:APP.DEFAULT">
+        <view:associations>
+            <cm:inZone>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator" view:childname="cm:GROUP_CaseStaffCreator"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffReader" view:childname="cm:GROUP_CaseStaffReader"/>
+                <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffWriter" view:childname="cm:GROUP_CaseStaffWriter"/>
+            </cm:inZone>
+        </view:associations>
+    </view:reference>
+    
+    <!-- Add alfresco administrators group into CaseStaffCreator --> 
+    <view:reference view:pathref="${system.authorities_container.childname}/cm:GROUP_CaseStaffCreator">
+        <view:associations>
+            <cm:member>
+                <view:reference view:pathref="/sys:system/sys:authorities/cm:GROUP_ALFRESCO_ADMINISTRATORS" view:childName="cm:GROUP_ALFRESCO_ADMINISTRATORS"></view:reference>           
+            </cm:member>
+        </view:associations>
+    </view:reference>
+</view:view>

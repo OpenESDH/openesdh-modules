@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="staff:caseModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+    <description>OpenESDH Staff Model</description>
+    <author>Torben N. Rasmussen</author>
+    <version>1.0</version>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+        <import uri="http://openesdh.dk/model/openesdh/1.0" prefix="oe" />
+        <import uri="http://openesdh.dk/model/case/base/1.0" prefix="base" />
+    </imports>
+    <namespaces>
+        <namespace uri="http://openesdh.dk/model/case/staff/1.0" prefix="staff" />
+    </namespaces>
+
+    <types>
+        <type name="staff:case">
+            <parent>base:case</parent>
+            <properties>
+                <property name="staff:hireDate">
+                    <type>d:date</type>
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="staff:resignationDate">
+                    <type>d:date</type>
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="staff:salary">
+                    <type>d:int</type>
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="staff:employeeInfo">
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                </property>
+            </properties>
+
+            <associations>
+                <association name="staff:employee">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>staff:employee</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </type>
+
+        <type name="staff:employee">
+            <parent>cm:person</parent>
+            <properties>
+                <property name="staff:cprNumber">
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                </property>
+            </properties>
+        </type>
+    </types>
+</model>

@@ -48,6 +48,7 @@
     </dependencyManagement>
 
     <modules>
+        <module>openesdh-staff-case</module>
 	<!--
         <module>openesdh-repo</module>
         <module>openesdh-doc-templates-api</module>

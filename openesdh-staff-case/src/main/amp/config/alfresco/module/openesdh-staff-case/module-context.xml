@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+	<!-- This is filtered by Maven at build time, so that module name is single sourced. -->
+
+
+    <!--<import resource="classpath:alfresco/module/${project.artifactId}/context/custom-model-context.xml" />-->
+    <!--<import resource="classpath:alfresco/module/${project.artifactId}/context/staff-service-context.xml" />-->
+    <import resource="classpath:alfresco/module/${project.artifactId}/context/staff-model-context.xml" />
+
+    <import resource="classpath:alfresco/module/${project.artifactId}/context/bootstrap-context.xml" />
+
+    <import resource="classpath:alfresco/module/${project.artifactId}/context/staff-repository-context.xml" />
+</beans>
