@@ -22,18 +22,22 @@
         <alfresco.groupId>org.alfresco</alfresco.groupId>
         <alfresco.version>5.0.d</alfresco.version>
         <app.log.root.level>WARN</app.log.root.level>
+        <alfresco.data.location>openesdh-repo/alf_data_dev</alfresco.data.location>
+        <env>local</env>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- IMPORTANT! Override this only if you know what you're doing; it could break amp-to-war overlay -->
+        <alfresco.client.war.folder>${project.build.directory}/${project.build.finalName}-war</alfresco.client.war.folder>
         
         <!-- OpenESDH module versions-->
         <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
-        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
-        <openesdh.staff.case.version>1.0.1-SNAPSHOT</openesdh.staff.case.version>
+        <openesdh.simple.case.version>1.0.2-SNAPSHOT</openesdh.simple.case.version>
+        <openesdh.staff.case.version>1.0.2-SNAPSHOT</openesdh.staff.case.version>
         <openesdh.repo.version>1.0-SNAPSHOT</openesdh.repo.version>
         <openesdh.office.version>1.0-SNAPSHOT</openesdh.office.version>
         <openesdh.doctemplates.version>1.0-SNAPSHOT</openesdh.doctemplates.version>
         <openesdh.project.rooms.version>1.0-SNAPSHOT</openesdh.project.rooms.version>
     </properties>
-
+    
     <!-- Here we realize the connection with the Alfresco selected platform (e.g.version and edition) -->
     <dependencyManagement>
         <dependencies>
@@ -49,11 +53,8 @@
 
     <modules>
         <module>openesdh-staff-case</module>
-        <module>openesdh-office</module>
-	<!--
-        <module>openesdh-repo</module>
         <module>openesdh-doc-templates-api</module>
         <module>openesdh-doc-templates</module>
-		-->
+        <module>openesdh-office</module>
     </modules>
 </project>

@@ -14,7 +14,7 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-
+    
     <dependencies>
         <!-- Following dependencies are needed for compiling Java code in src/main/java;
         <scope>provided</scope> is inherited for each of the following;
@@ -79,7 +79,7 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>alf_data_dev</directory>
+                            <directory>openesdh-repo/alf_data_dev</directory>
                         </fileset>
                     </filesets>
                 </configuration>
