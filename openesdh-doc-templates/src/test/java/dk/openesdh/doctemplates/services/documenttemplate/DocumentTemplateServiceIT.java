@@ -28,7 +28,7 @@ public class DocumentTemplateServiceIT extends TemplateTester {
     private DocumentTemplateService documentTemplateService;
 
     //solr test
-    //@Test
+    @Test
     public void testFindTemplates() {
         List<DocumentTemplateInfo> templates = documentTemplateService.findTemplates("Tes", 10);
         assertEquals("Template is found", 1, templates.size());
