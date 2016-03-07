@@ -14,7 +14,7 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-
+    
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -69,7 +69,7 @@
         </dependency>
         <!-- simple-case-repo -->
         <dependency>
-            <groupId>dk.openesdh.case</groupId>
+            <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-simple-case</artifactId>
             <version>${openesdh.simple.case.version}</version>
             <type>test-jar</type>
@@ -91,7 +91,7 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>openesdh-repo/alf_data_dev</directory>
+                            <directory>alf_data_dev</directory>
                         </fileset>
                     </filesets>
                 </configuration>
