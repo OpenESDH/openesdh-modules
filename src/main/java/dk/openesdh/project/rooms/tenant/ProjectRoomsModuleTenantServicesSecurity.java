@@ -14,7 +14,7 @@ public class ProjectRoomsModuleTenantServicesSecurity extends TenantModulesSecur
     @PostConstruct
     public void init() {
         setOpeneModuleId(ProjectRoomsModule.MODULE_ID);
-        setBeanPackageNames("dk.openesdh.project.rooms.services*");
+        setBeanPackageNames("dk.openesdh.project.rooms.services");
     }
 
 }

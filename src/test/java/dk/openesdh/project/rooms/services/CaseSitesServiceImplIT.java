@@ -70,7 +70,7 @@ public class CaseSitesServiceImplIT {
     private SiteService siteService;
 
     @Autowired
-    @Qualifier("CaseSitesService")
+    @Qualifier(CaseSitesService.BEAN_ID)
     private CaseSitesService caseSiteService;
 
     @Autowired

@@ -58,10 +58,13 @@ import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.contacts.ContactService;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.members.CaseMembersService;
 import dk.openesdh.repo.services.tenant.TenantOpeneModulesService;
 
-@Service("CaseSitesService")
+@Service(CaseSitesServiceImpl.BEAN_ID)
 public class CaseSitesServiceImpl implements CaseSitesService {
+
+    public static final String BEAN_ID = "caseSitesService";
 
     @Autowired
     @Qualifier("SiteService")
@@ -98,6 +101,10 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     @Autowired
     @Qualifier("CaseService")
     private CaseService caseService;
+
+    @Autowired
+    @Qualifier("CaseMembersService")
+    private CaseMembersService caseMembersService;
 
     @Autowired
     @Qualifier("PersonService")
@@ -155,12 +162,17 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     }
 
     @Override
-    public void inviteParticipants(CaseSite site) {
+    public CaseSite inviteParticipants(CaseSite site) {
         String context = tenantOpeneModulesService.getCurrentTenantUIContext().map(c -> "/" + c).orElse("");
         String acceptUrl = context + this.acceptUrl;
         String rejectUrl = context + this.rejectUrl;
         inviteSiteMembers(site, acceptUrl, rejectUrl);
         inviteSiteParties(site, acceptUrl, rejectUrl);
+
+        CaseSite result = getCaseSite(site.getShortName());
+        result.setSiteMembers(site.getSiteMembers());
+        result.setSiteParties(site.getSiteParties());
+        return result;
     }
 
     @Override
@@ -175,13 +187,13 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     }
 
     @Override
-    public void closeCaseSite(CaseSite siteData) {
+    public CaseSite closeCaseSite(CaseSite siteData) {
         CaseSite site = getCaseSite(siteData.getShortName());
         site.setSiteDocuments(siteData.getSiteDocuments());
-        tr.runInTransaction(() -> {
+        return tr.runInTransaction(() -> {
             caseSiteDocumentsService.copySiteDocumentsBackToCase(site);
             siteService.deleteSite(siteData.getShortName());
-            return null;
+            return site;
         });
     }
 
@@ -298,6 +310,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
 
     protected void inviteSiteMembers(CaseSite site, String acceptUrl, String rejectUrl) {
         for (SiteMember member : site.getSiteMembers()) {
+            member.setName(getAuthorityDisplayName(member.getAuthority()));
             invitationService.inviteNominated(member.getAuthority(), Invitation.ResourceType.WEB_SITE,
                     site.getShortName(), member.getRole(), acceptUrl, rejectUrl);
         }
@@ -307,10 +320,12 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         for (SiteParty party : site.getSiteParties()) {
             ContactInfo partyContact = contactService.getContactInfo(new NodeRef(party.getNodeRef()));
             if (ContactType.PERSON.name().equals(partyContact.getType())) {
+                party.setName(partyContact.getFirstName() + " " + partyContact.getLastName());
                 invitationService.inviteNominated(partyContact.getFirstName(), partyContact.getLastName(),
                         partyContact.getEmail(), Invitation.ResourceType.WEB_SITE, site.getShortName(),
                         party.getRole(), acceptUrl, rejectUrl);
             } else {
+                party.setName(partyContact.getName());
                 invitationService.inviteNominated(partyContact.getName(), partyContact.getName(),
                         partyContact.getEmail(),
                         Invitation.ResourceType.WEB_SITE, site.getShortName(), party.getRole(), acceptUrl,
@@ -329,6 +344,34 @@ public class CaseSitesServiceImpl implements CaseSitesService {
                 .append(caseId).append("'").toString();
 
         return queryCaseSites(query);
+    }
+
+    @Override
+    public CaseSite getCaseSite(NodeRef siteNodeRef) {
+        Map<QName, Serializable> properties = this.nodeService.getProperties(siteNodeRef);
+        String caseId = null;
+        if (properties.keySet().contains(OpenESDHModel.PROP_OE_CASE_ID)) {
+            caseId = (String) properties.get(OpenESDHModel.PROP_OE_CASE_ID);
+        }
+
+        CaseSite site = new CaseSite();
+        site.setCaseId(caseId);
+        site.setShortName((String) properties.get(ContentModel.PROP_NAME));
+        site.setSitePreset((String) properties.get(SiteModel.PROP_SITE_PRESET));
+        site.setTitle((String) properties.get(ContentModel.PROP_TITLE));
+        site.setDescription((String) properties.get(ContentModel.PROP_DESCRIPTION));
+        site.setCreatedDate((Date) properties.get(ContentModel.PROP_CREATED));
+        site.setLastModifiedDate((Date) properties.get(ContentModel.PROP_MODIFIED));
+        site.setVisibility(getSiteVisibility(siteNodeRef));
+
+        String siteCreatorUserName = properties.get(ContentModel.PROP_CREATOR).toString();
+        PersonInfo siteCreator = personService.getPerson(personService.getPerson(siteCreatorUserName));
+        site.setCreator(siteCreator);
+
+        site.setDocumentsFolderRef(
+                siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY).toString());
+
+        return site;
     }
 
     private List<CaseSite> queryCaseSites(String query) {
@@ -357,33 +400,6 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         }
     }
 
-    private CaseSite getCaseSite(NodeRef siteNodeRef) {
-        Map<QName, Serializable> properties = this.nodeService.getProperties(siteNodeRef);
-        String caseId = null;
-        if (properties.keySet().contains(OpenESDHModel.PROP_OE_CASE_ID)) {
-            caseId = (String) properties.get(OpenESDHModel.PROP_OE_CASE_ID);
-        }
-
-        CaseSite site = new CaseSite();
-        site.setCaseId(caseId);
-        site.setShortName((String) properties.get(ContentModel.PROP_NAME));
-        site.setSitePreset((String) properties.get(SiteModel.PROP_SITE_PRESET));
-        site.setTitle((String) properties.get(ContentModel.PROP_TITLE));
-        site.setDescription((String) properties.get(ContentModel.PROP_DESCRIPTION));
-        site.setCreatedDate((Date) properties.get(ContentModel.PROP_CREATED));
-        site.setLastModifiedDate((Date) properties.get(ContentModel.PROP_MODIFIED));
-        site.setVisibility(getSiteVisibility(siteNodeRef));
-
-        String siteCreatorUserName = properties.get(ContentModel.PROP_CREATOR).toString();
-        PersonInfo siteCreator = personService.getPerson(personService.getPerson(siteCreatorUserName));
-        site.setCreator(siteCreator);
-
-        site.setDocumentsFolderRef(
-                siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY).toString());
-
-        return site;
-    }
-
     private SiteVisibility getSiteVisibility(NodeRef siteNodeRef) {
         // Get the visibility value stored in the repo
         String visibilityValue = (String) this.nodeService.getProperty(siteNodeRef, SiteModel.PROP_SITE_VISIBILITY);
@@ -406,5 +422,13 @@ public class CaseSitesServiceImpl implements CaseSitesService {
             return SiteVisibility.PRIVATE;
         }
 
+    }
+
+    private String getAuthorityDisplayName(String authorityName) {
+        if (!caseMembersService.isAuthorityPerson(authorityName)) {
+            return authorityName;
+        }
+        PersonInfo info = personService.getPerson(personService.getPerson(authorityName));
+        return info.getFirstName() + " " + info.getLastName();
     }
 }

@@ -157,6 +157,7 @@ public class CaseSite {
     public static class SiteMember {
         private String authority;
         private String role;
+        private String name;
 
         public SiteMember() {
 
@@ -183,12 +184,21 @@ public class CaseSite {
         public void setRole(String role) {
             this.role = role;
         }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 
     public static class SiteParty {
         private String contactId;
         private String nodeRef;
         private String role;
+        private String name;
 
         public SiteParty() {
 
@@ -223,6 +233,14 @@ public class CaseSite {
 
         public void setRole(String role) {
             this.role = role;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 }

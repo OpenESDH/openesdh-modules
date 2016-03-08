@@ -29,7 +29,7 @@ import dk.openesdh.repo.webscripts.utils.WebScriptUtils;
 public class CaseSitesWebScript {
 
     @Autowired
-    @Qualifier("CaseSitesService")
+    @Qualifier(CaseSitesService.BEAN_ID)
     private CaseSitesService caseSitesService;
     @Autowired
     @Qualifier("SiteService")
