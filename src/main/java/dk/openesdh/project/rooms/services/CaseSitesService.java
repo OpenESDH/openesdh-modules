@@ -11,6 +11,8 @@ import dk.openesdh.repo.services.cases.CaseService;
 
 public interface CaseSitesService {
 
+    String BEAN_ID = "CaseSitesService";
+
     // Mind the same RegEx in CaseSitesService.js
     public static final String SITE_SHORT_NAME_REGEX = "([a-zA-Z0-9_]+)";
 
@@ -64,14 +66,24 @@ public interface CaseSitesService {
      * Closes case site and copies provided documents back to the case
      * 
      * @param site
+     * @return
      */
-    void closeCaseSite(CaseSite site);
+    CaseSite closeCaseSite(CaseSite site);
 
     /**
      * Invites participants to the provided site.
      * 
      * @param site
+     * @return
      */
-    void inviteParticipants(CaseSite site);
+    CaseSite inviteParticipants(CaseSite site);
+
+    /**
+     * Retrieves site info by provided nodeRef
+     * 
+     * @param shortName
+     * @return
+     */
+    CaseSite getCaseSite(NodeRef siteNodeRef);
 
 }

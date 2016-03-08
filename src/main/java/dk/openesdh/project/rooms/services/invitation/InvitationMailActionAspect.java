@@ -1,4 +1,4 @@
-package dk.openesdh.project.rooms.services;
+package dk.openesdh.project.rooms.services.invitation;
 
 import java.util.function.Predicate;
 

@@ -14,12 +14,13 @@
             <list>
                 <value>alfresco.messages.caseSiteHistory</value>
                 <value>alfresco.messages.inviteEmail</value>
+                <value>alfresco.messages.pr-activity-list</value>
             </list>
         </property>
     </bean>
     
     <bean id="${project.artifactId}_dictionaryBootstrap"
-          parent="dictionaryModelBootstrap" depends-on="dictionaryBootstrap">
+          parent="dictionaryModelBootstrap" depends-on="openesdh-repo_dictionaryBootstrap">
         <property name="models">
             <list>
                 <value>alfresco/module/${project.artifactId}/models/pr-model.xml</value>
