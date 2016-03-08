@@ -10,15 +10,13 @@
     <description>Manages the lifecycle of the openesdh-project-rooms Repository AMP (Alfresco Module Package)</description>
 
     <parent>
-        <groupId>org.alfresco.maven</groupId>
-        <artifactId>alfresco-sdk-parent</artifactId>
-        <version>2.1.0</version>
+        <groupId>dk.openesdh</groupId>
+        <artifactId>openesdh-modules</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <properties>
-        <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
-        <openesdhrepo.version>1.0-SNAPSHOT</openesdhrepo.version>
-        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
         <opene.product.name>OpenESDH</opene.product.name>
     </properties>
 
@@ -60,20 +58,20 @@
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
-            <version>${openesdhrepo.version}</version>
+            <version>${openesdh.repo.version}</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
-            <version>${openesdhrepo.version}</version>
+            <version>${openesdh.repo.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>dk.openesdh.case</groupId>
-            <artifactId>simple-case-repo</artifactId>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-simple-case</artifactId>
             <version>${openesdh.simple.case.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
