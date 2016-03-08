@@ -16,22 +16,6 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <properties>
-        <opene.product.name>OpenESDH</opene.product.name>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${alfresco.groupId}</groupId>
-                <artifactId>alfresco-platform-distribution</artifactId>
-                <version>${alfresco.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    
     <dependencies>
         <dependency>
             <groupId>${alfresco.groupId}</groupId>
@@ -87,6 +71,17 @@
     <build>
         <plugins>
             <plugin>
+                <!-- remove any old test data-->
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>alf_data_dev</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
 		        <groupId>org.apache.maven.plugins</groupId>
 		        <artifactId>maven-surefire-plugin</artifactId>
 		        <configuration>
@@ -97,39 +92,4 @@
 		      </plugin>
         </plugins>
     </build>
-    
-    <profiles>
-        <profile>
-            <id>unpack-deps</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-
-                        <executions>
-                            <execution>
-                                <id>unpack-amps</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>unpack-dependencies</goal>
-                                </goals>
-                                <configuration>
-                                    <includeTypes>amp</includeTypes>
-                                    <outputDirectory>${app.amp.client.war.folder}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.alfresco.maven.plugin</groupId>
-                                <artifactId>maven-amp-plugin</artifactId>
-                                <version>3.0.2</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
