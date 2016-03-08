@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="pr:openesdhProjectRoomsModel"
+       xmlns="http://www.alfresco.org/model/dictionary/1.0">
+    <description>OpenESDH Project Rooms Model</description>
+    <version>1.0</version>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+    </imports>
+    <namespaces>
+        <namespace uri="http://openesdh.dk/model/projectrooms/1.0" prefix="pr"/>
+    </namespaces>
+    <aspects>
+        <aspect name="pr:updatable">
+            <properties>
+                <property name="pr:updated">
+                    <type>d:boolean</type>
+                    <mandatory>true</mandatory>
+                    <default>true</default>
+                </property>
+            </properties>
+        </aspect>
+    </aspects>
+</model>

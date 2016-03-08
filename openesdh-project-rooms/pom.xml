@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dk.openesdh</groupId>
+    <artifactId>openesdh-project-rooms</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>openesdh-project-rooms Repository AMP project</name>
+    <packaging>amp</packaging>
+    <description>Manages the lifecycle of the openesdh-project-rooms Repository AMP (Alfresco Module Package)</description>
+
+    <parent>
+        <groupId>org.alfresco.maven</groupId>
+        <artifactId>alfresco-sdk-parent</artifactId>
+        <version>2.1.0</version>
+    </parent>
+
+    <properties>
+        <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
+        <openesdhrepo.version>1.0-SNAPSHOT</openesdhrepo.version>
+        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
+        <opene.product.name>OpenESDH</opene.product.name>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${alfresco.groupId}</groupId>
+                <artifactId>alfresco-platform-distribution</artifactId>
+                <version>${alfresco.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <dependencies>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco-repository</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco-remote-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.dynamicextensionsalfresco</groupId>
+            <artifactId>webscripts</artifactId>
+            <version>${dynamicextensionsalfresco.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.dynamicextensionsalfresco</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${dynamicextensionsalfresco.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>${openesdhrepo.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>${openesdhrepo.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh.case</groupId>
+            <artifactId>simple-case-repo</artifactId>
+            <version>${openesdh.simple.case.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>amp</type>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-surefire-plugin</artifactId>
+		        <configuration>
+		          <includes>
+		            <include>**/*IT.java</include>
+		          </includes>
+		        </configuration>
+		      </plugin>
+        </plugins>
+    </build>
+    
+    <profiles>
+        <profile>
+            <id>unpack-deps</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+
+                        <executions>
+                            <execution>
+                                <id>unpack-amps</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>unpack-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeTypes>amp</includeTypes>
+                                    <outputDirectory>${app.amp.client.war.folder}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.alfresco.maven.plugin</groupId>
+                                <artifactId>maven-amp-plugin</artifactId>
+                                <version>3.0.2</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
