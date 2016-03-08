@@ -56,5 +56,6 @@
         <module>openesdh-doc-templates-api</module>
         <module>openesdh-doc-templates</module>
         <module>openesdh-office</module>
+        <module>openesdh-project-rooms</module>
     </modules>
 </project>
