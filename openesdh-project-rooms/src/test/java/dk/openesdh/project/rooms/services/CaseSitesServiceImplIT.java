@@ -154,14 +154,10 @@ public class CaseSitesServiceImplIT {
         List<NodeRef> folders = Arrays.asList(testFolder);
         List<NodeRef> cases = Arrays.asList(testCase1);
         List<String> users = Arrays.asList(CaseHelper.DEFAULT_USERNAME);
-        try {
-            docTestHelper.removeNodesAndDeleteUsersInTransaction(folders, cases, users);
-        } catch (Exception ignored) {
-        }
-
         if (siteService.hasSite(TEST_CASE_NAME1)) {
             siteService.deleteSite(TEST_CASE_NAME1);
         }
+        docTestHelper.removeNodesAndDeleteUsersInTransaction(folders, cases, users);
     }
 
     @Test
