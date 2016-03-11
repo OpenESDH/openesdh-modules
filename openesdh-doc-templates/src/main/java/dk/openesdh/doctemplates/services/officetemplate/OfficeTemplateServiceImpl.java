@@ -1,21 +1,17 @@
 package dk.openesdh.doctemplates.services.officetemplate;
 
-import static dk.openesdh.doctemplates.api.services.OfficeTemplateService.OPENESDH_DOC_TEMPLATES_DEFAULT_PATH;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Joiner;
+import dk.openesdh.doctemplates.api.model.OfficeTemplate;
+import dk.openesdh.doctemplates.api.model.OfficeTemplateField;
+import dk.openesdh.doctemplates.api.model.OfficeTemplateMerged;
+import dk.openesdh.doctemplates.api.services.OfficeTemplateService;
+import dk.openesdh.repo.model.CaseInfo;
+import dk.openesdh.repo.model.OpenESDHModel;
+import dk.openesdh.repo.services.cases.CaseService;
+import dk.openesdh.repo.services.cases.CaseTypeService;
+import dk.openesdh.repo.services.documents.DocumentEmailService;
+import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.webscripts.contacts.ContactUtils;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentReader;
@@ -25,13 +21,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.model.FileNotFoundException;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.io.FilenameUtils;
@@ -49,19 +39,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.NodeList;
 
-import com.google.common.base.Joiner;
-
-import dk.openesdh.doctemplates.api.model.OfficeTemplate;
-import dk.openesdh.doctemplates.api.model.OfficeTemplateField;
-import dk.openesdh.doctemplates.api.model.OfficeTemplateMerged;
-import dk.openesdh.doctemplates.api.services.OfficeTemplateService;
-import dk.openesdh.repo.model.CaseInfo;
-import dk.openesdh.repo.model.OpenESDHModel;
-import dk.openesdh.repo.services.cases.CaseService;
-import dk.openesdh.repo.services.cases.CaseTypeService;
-import dk.openesdh.repo.services.documents.DocumentEmailService;
-import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.webscripts.contacts.ContactUtils;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by syastrov on 9/23/15.

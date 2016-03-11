@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>dk.openesdh</groupId>
     <artifactId>openesdh-doc-templates</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>OpenESDH Document Templates AMP</name>
@@ -14,7 +13,15 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    
+
+    <properties>
+
+        <!--This will build a jar with a “classes” classifier containing the classes, for use in other modules where
+        we may need to extend openESDH classes-->
+        <maven.alfresco.attachClasses>true</maven.alfresco.attachClasses>
+        <maven.alfresco.attachConfig>true</maven.alfresco.attachConfig>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -54,27 +61,27 @@
             <classifier>classes</classifier>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
             <version>${openesdh.repo.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency>-->
+        <!--<dependency>
             <groupId>dk.openesdh</groupId>
             <artifactId>openesdh-repo</artifactId>
             <version>${openesdh.repo.version}</version>
             <type>amp</type>
-        </dependency>
+        </dependency>-->
         <!-- simple-case-repo -->
-        <dependency>
-            <groupId>dk.openesdh</groupId>
-            <artifactId>openesdh-simple-case</artifactId>
+        <!--<dependency>
+            <groupId>dk.openesdh.case</groupId>
+            <artifactId>simple-case-repo</artifactId>
             <version>${openesdh.simple.case.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <!-- others -->
         <dependency>
             <groupId>org.apache.odftoolkit</groupId>
@@ -82,7 +89,7 @@
             <version>0.7-incubating</version>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>

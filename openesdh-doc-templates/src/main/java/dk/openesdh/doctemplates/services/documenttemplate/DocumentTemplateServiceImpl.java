@@ -1,8 +1,9 @@
 package dk.openesdh.doctemplates.services.documenttemplate;
 
-import java.io.Serializable;
-import java.util.*;
-
+import dk.openesdh.doctemplates.model.DocumentTemplateInfo;
+import dk.openesdh.doctemplates.model.DocumentTemplateInfoImpl;
+import dk.openesdh.doctemplates.model.OpenESDHDocTemplateModel;
+import dk.openesdh.repo.services.system.OpenESDHFoldersService;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -17,14 +18,15 @@ import org.alfresco.util.SearchLanguageConversion;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import dk.openesdh.doctemplates.model.DocumentTemplateInfo;
-import dk.openesdh.doctemplates.model.DocumentTemplateInfoImpl;
-import dk.openesdh.doctemplates.model.OpenESDHDocTemplateModel;
-import dk.openesdh.repo.services.system.OpenESDHFoldersService;
+import java.io.Serializable;
+import java.util.*;
 
 @Service("DocumentTemplateService")
 public class DocumentTemplateServiceImpl implements DocumentTemplateService {
@@ -131,5 +133,21 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
         }
 
         return tmplInfo;
+    }
+
+    @Override
+    public JSONArray buildDocTemplateJSON(List<DocumentTemplateInfo> templates) throws JSONException {
+        JSONArray result = new JSONArray();
+        for (DocumentTemplateInfo template : templates) {
+            JSONObject templateObj = new JSONObject();
+
+            templateObj.put("title", template.getTitle());
+            templateObj.put("name", template.getName());
+            templateObj.put("nodeRef", template.getNodeRef());
+            templateObj.put("version", template.getCustomProperty(ContentModel.PROP_VERSION_LABEL));
+            templateObj.put("templateType", template.getTemplateType());
+            result.put(templateObj);
+        }
+        return result;
     }
 }

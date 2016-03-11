@@ -30,7 +30,7 @@
         
         <!-- OpenESDH module versions-->
         <dynamicextensionsalfresco.version>1.0-SNAPSHOT</dynamicextensionsalfresco.version>
-        <openesdh.simple.case.version>1.0.2-SNAPSHOT</openesdh.simple.case.version>
+        <openesdh.simple.case.version>1.0.1-SNAPSHOT</openesdh.simple.case.version>
         <openesdh.staff.case.version>1.0.2-SNAPSHOT</openesdh.staff.case.version>
         <openesdh.repo.version>1.0-SNAPSHOT</openesdh.repo.version>
         <openesdh.office.version>1.0-SNAPSHOT</openesdh.office.version>
@@ -38,7 +38,18 @@
         <openesdh.project.rooms.version>1.0-SNAPSHOT</openesdh.project.rooms.version>
         <opene.product.name>OpenESDH</opene.product.name>
     </properties>
-    
+
+    <distributionManagement>
+        <repository>
+            <id>Alfresco-RELEASES</id>
+            <url>http://nexus.magenta-aps.dk/nexus/content/repositories/Alfresco-RELEASES</url>
+        </repository>
+        <snapshotRepository>
+            <id>Alfresco-SNAPSHOTS</id>
+            <url>http://nexus.magenta-aps.dk/nexus/content/repositories/Alfresco-SNAPSHOTS</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <!-- Here we realize the connection with the Alfresco selected platform (e.g.version and edition) -->
     <dependencyManagement>
         <dependencies>

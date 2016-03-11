@@ -1,10 +1,6 @@
 package dk.openesdh.doctemplates.policy;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
+import dk.openesdh.doctemplates.model.OpenESDHDocTemplateModel;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
@@ -26,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import dk.openesdh.doctemplates.model.OpenESDHDocTemplateModel;
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author Lanre.
@@ -62,7 +60,7 @@ public class DocumentTemplateBehaviour implements NodeServicePolicies.OnAddAspec
     public void onAddAspect(NodeRef nodeRef, QName aspectTypeQName) {
         Map<QName, Serializable> docProps = nodeService.getProperties(nodeRef);
         try {
-            //Adding the thumbnail and adding the property should be done seperately hence both operations will not be
+            //Adding the thumbnail and adding the property should be done separately hence both operations will not be
             //in the same try/catch logic
             ContentData contentData = (ContentData) docProps.get(ContentModel.PROP_CONTENT);
             String MimeType = contentData.getMimetype();
