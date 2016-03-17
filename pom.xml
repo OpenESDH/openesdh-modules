@@ -58,5 +58,6 @@
         <module>openesdh-doc-templates</module>
         <module>openesdh-office</module>
         <module>openesdh-project-rooms</module>
-    </modules>
+        <module>openesdh-case-templates</module>
+  </modules>
 </project>
