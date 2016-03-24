@@ -58,11 +58,11 @@ public class CaseSiteActivityServiceImpl implements CaseSiteActivityService {
     private PersonService personService;
 
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
 
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
 
     @Autowired

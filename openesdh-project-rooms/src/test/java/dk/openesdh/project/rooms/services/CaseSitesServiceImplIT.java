@@ -74,7 +74,7 @@ public class CaseSitesServiceImplIT {
     private CaseSitesService caseSiteService;
 
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
 
     @Autowired
@@ -94,7 +94,7 @@ public class CaseSitesServiceImplIT {
     private OELockService oeLockService;
 
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
 
     @Autowired

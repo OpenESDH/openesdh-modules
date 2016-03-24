@@ -76,7 +76,7 @@ public class CaseTemplateServiceImplIT {
     @Qualifier("PersonService")
     private PersonService personService;
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
     @Autowired
     @Qualifier("CaseTemplateService")
@@ -97,7 +97,7 @@ public class CaseTemplateServiceImplIT {
     @Qualifier("CaseDocumentTestHelper")
     private CaseDocumentTestHelper docTestHelper;
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
 
     private NodeRef caseTemplateRef;

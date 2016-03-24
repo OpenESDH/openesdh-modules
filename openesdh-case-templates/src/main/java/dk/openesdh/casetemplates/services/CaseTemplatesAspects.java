@@ -1,26 +1,24 @@
 package dk.openesdh.casetemplates.services;
 
-import javax.annotation.PostConstruct;
-
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import dk.openesdh.repo.policy.CaseBehaviour;
 import dk.openesdh.repo.services.TransactionRunner;
-import dk.openesdh.repo.services.activities.CaseDocumentActivityBehaviour;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.utils.ClassUtils;
 
 @Component
-public class CaseTemplatesAspects {
+public class CaseTemplatesAspects implements BeanFactoryAware {
 
     @Autowired
     @Qualifier("CaseTemplateService")
@@ -31,53 +29,32 @@ public class CaseTemplatesAspects {
     private CaseTemplatesFolderService caseTemplatesFolderService;
 
     @Autowired
-    @Qualifier("CaseService")
-    private CaseService caseService;
-
-    @Autowired
-    @Qualifier("DocumentService")
-    private DocumentService documentService;
-
-    @Autowired
-    @Qualifier(CaseBehaviour.BEAN_ID)
-    private CaseBehaviour caseBehaviour;
-
-    @Autowired
-    @Qualifier(CaseDocumentActivityBehaviour.BEAN_ID)
-    private CaseDocumentActivityBehaviour caseDocumentActivityBehaviour;
-
-    @Autowired
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
-    @PostConstruct
-    public void init() {
-        createAspectForCaseBehaviour();
-        createAspectForCaseDocumentActivityBehaviour();
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        if (!beanFactory.containsBean(CaseService.BEAN_ID)) {
+            return;
+        }
+        createAspectForCreateCase(beanFactory);
+        createAspectForIsDocBelongsToCase(beanFactory);
     }
 
-    private void createAspectForCaseBehaviour() {
-        ClassUtils.checkHasMethods(CaseService.class, "createCase");
+    private void createAspectForCreateCase(BeanFactory beanFactory) {
+        Advised caseService = (Advised) beanFactory.getBean(CaseService.BEAN_ID);
         NameMatchMethodPointcutAdvisor createCaseAdvisor = new NameMatchMethodPointcutAdvisor(
                 (MethodInterceptor) this::createCaseInterceptor);
         createCaseAdvisor.addMethodName("createCase");
-        ProxyFactory pf = new ProxyFactory();
-        pf.setTarget(caseService);
-        pf.setInterfaces(CaseService.class);
-        pf.addAdvisor(createCaseAdvisor);
-        caseBehaviour.setCaseService((CaseService) pf.getProxy());
+        caseService.addAdvisor(createCaseAdvisor);
     }
 
-    private void createAspectForCaseDocumentActivityBehaviour() {
-        ClassUtils.checkHasMethods(DocumentService.class, "isDocBelongsToCase");
+    private void createAspectForIsDocBelongsToCase(BeanFactory beanFactory) {
+        Advised documentService = (Advised) beanFactory.getBean(DocumentService.BEAN_ID);
         NameMatchMethodPointcutAdvisor isDocBelongsToCaseAdvisor = new NameMatchMethodPointcutAdvisor(
                 (MethodInterceptor) this::isDocBelongsToCaseInterceptor);
         isDocBelongsToCaseAdvisor.addMethodName("isDocBelongsToCase");
-        ProxyFactory pf = new ProxyFactory();
-        pf.setTarget(documentService);
-        pf.setInterfaces(DocumentService.class);
-        pf.addAdvisor(isDocBelongsToCaseAdvisor);
-        caseDocumentActivityBehaviour.setDocumentService((DocumentService) pf.getProxy());
+        documentService.addAdvisor(isDocBelongsToCaseAdvisor);
     }
 
     /**
@@ -91,7 +68,7 @@ public class CaseTemplatesAspects {
         if (casesTemplatesFolder.equals(childAssocRef.getParentRef())) {
             caseTemplateService.onCreateCaseTemplate(childAssocRef.getChildRef());
         } else {
-            caseService.createCase(childAssocRef);
+            invocation.proceed();
             caseTemplateService.copyCaseTemplateDocsToCase(childAssocRef.getChildRef());
         }
         return null;
@@ -104,7 +81,9 @@ public class CaseTemplatesAspects {
      */
     private Object isDocBelongsToCaseInterceptor(MethodInvocation invocation) throws Throwable {
         NodeRef docRef = (NodeRef) invocation.getArguments()[0];
-        return !caseTemplateService.isDocBelongsToCaseTemplate(docRef)
-                && documentService.isDocBelongsToCase(docRef);
+        if (caseTemplateService.isDocBelongsToCaseTemplate(docRef)) {
+            return false;
+        }
+        return invocation.proceed();
     }
 }

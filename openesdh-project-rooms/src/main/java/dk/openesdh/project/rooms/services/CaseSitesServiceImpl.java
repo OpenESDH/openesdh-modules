@@ -79,7 +79,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     private InvitationService invitationService;
 
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
 
     @Autowired
@@ -99,7 +99,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
     private PermissionService permissionService;
 
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
 
     @Autowired

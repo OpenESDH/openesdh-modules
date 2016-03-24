@@ -29,7 +29,7 @@ import dk.openesdh.repo.utils.JSONArrayCollector;
 public class CaseTemplateServiceImpl implements CaseTemplateService {
 
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
     @Autowired
     @Qualifier("CaseTemplatesFolderService")
