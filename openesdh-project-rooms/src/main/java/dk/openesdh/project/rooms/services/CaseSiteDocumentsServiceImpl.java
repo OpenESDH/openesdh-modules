@@ -48,10 +48,10 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     @Qualifier("ContentService")
     private ContentService contentService;
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
     @Autowired
     @Qualifier("CaseDocumentCopyService")

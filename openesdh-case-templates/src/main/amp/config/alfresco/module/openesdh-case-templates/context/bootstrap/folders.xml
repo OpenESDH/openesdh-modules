@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0"
+           xmlns:cm="http://www.alfresco.org/model/content/1.0"
+           xmlns:app="http://www.alfresco.org/model/application/1.0"
+           xmlns:emailserver="http://www.alfresco.org/model/emailserver/1.0"
+           xmlns:sys="http://www.alfresco.org/model/system/1.0">
+
+    <cm:folder view:childName="ct:templates">
+        <app:uifacets />
+        <cm:name>templates</cm:name>
+        <app:icon>space-icon-default</app:icon>
+        <cm:title>OpenESDH case templates</cm:title>
+        <view:aspects>
+            <cm:titled />
+            <cm:auditable />
+            <app:uifacets />
+            <sys:referenceable />
+        </view:aspects>
+        <view:acl view:inherit="false">
+            <view:ace view:access="ALLOWED">
+                <view:authority>GROUP_EVERYONE</view:authority>
+                <view:permission>Consumer</view:permission>
+            </view:ace>
+        </view:acl>
+        <view:properties>
+            <sys:store-protocol>workspace</sys:store-protocol>
+            <sys:store-identifier>SpacesStore</sys:store-identifier>
+            <sys:node-uuid>d8b438df-cac3-48b7-a3e8-98834755ee5a</sys:node-uuid>
+            <cm:description>This folder stores OpenESDH case templates</cm:description>
+        </view:properties>
+    </cm:folder>
+</view:view>
