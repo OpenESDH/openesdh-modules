@@ -125,6 +125,8 @@ public class CaseSitesServiceImplIT {
     private static final String TEST_CASE_NAME1 = "TestCase1";
     private static final String TEST_DOCUMENT_NAME = "TestDocument";
     private static final String TEST_DOCUMENT_FILE_NAME = TEST_DOCUMENT_NAME + ".txt";
+    private static final String TEST_DOCUMENT_NAME2 = "TestDocument2";
+    private static final String TEST_DOCUMENT_FILE_NAME2 = TEST_DOCUMENT_NAME2 + ".txt";
     private static final String TEST_DOCUMENT_ATTACHMENT_NAME = "TestDocumentAttachment";
     private static final String TEST_DOCUMENT_ATTACHMENT_FILE_NAME = TEST_DOCUMENT_ATTACHMENT_NAME + ".txt";
     private static final String NEW_SITE_DOC_NAME = "New site document";
@@ -135,6 +137,8 @@ public class CaseSitesServiceImplIT {
     private String testCaseId;
     private NodeRef testDocumentRecFolder;
     private NodeRef testDocumentAttachment;
+    private NodeRef testDocument2;
+    private NodeRef testDocumentRecFolder2;
 
     @Before
     public void setUp() throws Exception {
@@ -146,6 +150,8 @@ public class CaseSitesServiceImplIT {
         testDocumentRecFolder = nodeService.getPrimaryParent(testDocument).getParentRef();
         testDocumentAttachment = docTestHelper.createCaseDocumentAttachment(TEST_DOCUMENT_ATTACHMENT_FILE_NAME,
                 testDocumentRecFolder);
+        testDocument2 = docTestHelper.createCaseDocument(TEST_DOCUMENT_FILE_NAME2, testCase1);
+        testDocumentRecFolder2 = nodeService.getPrimaryParent(testDocument2).getParentRef();
     }
 
     @After
@@ -169,14 +175,14 @@ public class CaseSitesServiceImplIT {
     @Test
     public void shouldCreateSiteCopyCaseDocumentNoAttachmentsAndLock() throws JSONException {
 
-        CaseSite site = siteWithDocument();
+        CaseSite site = siteWithDocuments();
         CaseDocument document = site.getSiteDocuments().get(0);
         caseSiteService.createCaseSite(site);
 
         Assert.assertTrue("Should create site for case", siteService.hasSite(TEST_CASE_NAME1));
 
         JSONArray siteDocuments = caseSiteDocumentsService.getCaseSiteDocumentsJson(TEST_CASE_NAME1);
-        Assert.assertEquals("Created site should contain a document", 1, siteDocuments.length());
+        Assert.assertEquals("Created site should contain 2 documents", 2, siteDocuments.length());
         JSONObject siteDocument = (JSONObject) siteDocuments.get(0);
         Assert.assertFalse("Site document SHOULD contain copy of case document",
                 document.getNodeRef().equals(siteDocument.get(NODE_REF)));
@@ -221,7 +227,7 @@ public class CaseSitesServiceImplIT {
 
     @Test
     public void shouldCloseSiteCopySiteDocumentsBackToCase() {
-        caseSiteService.createCaseSite(siteWithDocumentAndAttachment());
+        caseSiteService.createCaseSite(siteWithDocumentsAndAttachment());
         final String SITE_DOC_CONTENT = "Site doc content";
         final String SITE_DOC_ATTACHMENT_CONTENT = "Site doc attachment content";
         List<CaseDocument> siteDocs = caseSiteDocumentsService
@@ -308,9 +314,10 @@ public class CaseSitesServiceImplIT {
         return site;
     }
 
-    private CaseSite siteWithDocument() {
+    private CaseSite siteWithDocuments() {
         CaseSite site = site();
         site.getSiteDocuments().add(document());
+        site.getSiteDocuments().add(document2());
         return site;
     }
 
@@ -320,10 +327,24 @@ public class CaseSitesServiceImplIT {
         return site;
     }
 
+    private CaseSite siteWithDocumentsAndAttachment() {
+        CaseSite site = site();
+        site.getSiteDocuments().add(documentWithAttachment());
+        site.getSiteDocuments().add(document2());
+        return site;
+    }
+
     private CaseDocument document() {
         CaseDocument document = new CaseDocument();
         document.setNodeRef(testDocumentRecFolder.toString());
         document.setMainDocNodeRef(testDocument.toString());
+        return document;
+    }
+
+    private CaseDocument document2() {
+        CaseDocument document = new CaseDocument();
+        document.setNodeRef(testDocumentRecFolder2.toString());
+        document.setMainDocNodeRef(testDocument2.toString());
         return document;
     }
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ct:caseTemplatesModel"
+       xmlns="http://www.alfresco.org/model/dictionary/1.0">
+    <description>OpenESDH Case Templates Model</description>
+    <author>Jurij Rudinskij</author>
+    <version>1.0</version>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+        <import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+    </imports>
+    <namespaces>
+        <namespace uri="http://openesdh.dk/model/case/templates/1.0" prefix="ct"/>
+    </namespaces>
+    
+    <aspects>
+        <aspect name="ct:CaseTemplate">
+            <properties>
+                <property name="ct:workflows">
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
+        </aspect>
+    </aspects>
+</model>

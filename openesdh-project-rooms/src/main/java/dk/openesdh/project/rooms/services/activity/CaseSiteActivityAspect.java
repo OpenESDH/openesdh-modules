@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.project.rooms.services.CaseSitesService;
+import dk.openesdh.repo.utils.ClassUtils;
 
 @Component
 public class CaseSiteActivityAspect implements BeanFactoryAware {
@@ -30,6 +31,8 @@ public class CaseSiteActivityAspect implements BeanFactoryAware {
         if (!beanFactory.containsBean(CaseSitesService.BEAN_ID)) {
             return;
         }
+        ClassUtils.checkHasMethods(CaseSitesService.class, "createCaseSite", "closeCaseSite",
+                "inviteParticipants");
 
         Advised caseSiteServiceProxy = (Advised) beanFactory.getBean(CaseSitesService.BEAN_ID);
 
