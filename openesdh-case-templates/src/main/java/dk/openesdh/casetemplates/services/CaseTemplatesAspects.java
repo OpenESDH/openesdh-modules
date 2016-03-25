@@ -69,7 +69,10 @@ public class CaseTemplatesAspects implements BeanFactoryAware {
             caseTemplateService.onCreateCaseTemplate(childAssocRef.getChildRef());
         } else {
             invocation.proceed();
-            caseTemplateService.copyCaseTemplateDocsToCase(childAssocRef.getChildRef());
+            tr.runAsSystem(() -> {
+                caseTemplateService.copyCaseTemplateDocsToCase(childAssocRef.getChildRef());
+                return null;
+            });
         }
         return null;
     }
@@ -77,6 +80,8 @@ public class CaseTemplatesAspects implements BeanFactoryAware {
     /**
      * Checks whether provided doc belongs to case template before check if
      * belongs to case.
+     * This is due to case activity behaviour, which sends notifications when case document is uploaded.
+     * The behaviour is omitted by checking whether it's a template document.
      * 
      */
     private Object isDocBelongsToCaseInterceptor(MethodInvocation invocation) throws Throwable {

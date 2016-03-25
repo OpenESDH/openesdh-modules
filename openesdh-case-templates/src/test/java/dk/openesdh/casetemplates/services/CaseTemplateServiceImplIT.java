@@ -12,6 +12,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
@@ -99,6 +100,9 @@ public class CaseTemplateServiceImplIT {
     @Autowired
     @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
+    @Autowired
+    @Qualifier("AuthorityService")
+    private AuthorityService authorityService;
 
     private NodeRef caseTemplateRef;
     private NodeRef caseRef;
@@ -108,19 +112,32 @@ public class CaseTemplateServiceImplIT {
     @Before
     public void setUp() throws Exception {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
-        testFolder = docTestHelper.createFolder(TEST_FOLDER_NAME);
-        adminNodeRef = personService.getPerson(AuthenticationUtil.getAdminUserName());
+        tr.runInTransaction(() -> {
+            testFolder = docTestHelper.createFolder(TEST_FOLDER_NAME);
+            adminNodeRef = personService.getPerson(AuthenticationUtil.getAdminUserName());
+            caseHelper.deleteDummyUser();
+            caseHelper.createDummyUser();
+            authorityService.addAuthority(CaseHelper.CASE_SIMPLE_CREATOR_GROUP, CaseHelper.DEFAULT_USERNAME);
+            return null;
+        });
     }
 
     @After
     public void tearDown() throws Exception {
-        if (caseRef != null && nodeService.exists(caseRef)) {
-            nodeService.deleteNode(caseRef);
-        }
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
+        tr.runInTransaction(() -> {
+            if (caseRef != null && nodeService.exists(caseRef)) {
+                nodeService.deleteNode(caseRef);
+            }
 
-        if (caseTemplateRef != null) {
-            nodeService.deleteNode(caseTemplateRef);
-        }
+            if (caseTemplateRef != null) {
+                nodeService.deleteNode(caseTemplateRef);
+            }
+
+            caseHelper.deleteDummyUser();
+            return null;
+        });
+
     }
 
     @Test
@@ -143,6 +160,17 @@ public class CaseTemplateServiceImplIT {
     }
 
     @Test
+    public void shouldCreateCaseTemplateAvailableToCaseCreator() {
+        tr.runInTransaction(() -> {
+            createCaseTemplate();
+            return null;
+        });
+        AuthenticationUtil.setFullyAuthenticatedUser(CaseHelper.DEFAULT_USERNAME);
+        JSONArray array = caseTemplateService.getCaseTemplates(CaseHelper.SIMPLE_CASE_TYPE);
+        Assert.assertEquals("Wrong number of retrieved case templates", 1, array.length());
+    }
+
+    @Test
     public void shouldCreateCaseTemplateWithDocsAndRetrieveJsonInfo() throws JSONException {
         tr.runInTransaction(() -> {
             createCaseTemplate();
@@ -152,7 +180,7 @@ public class CaseTemplateServiceImplIT {
             addTemplateDocs();
             return null;
         });
-        JSONArray array = caseTemplateService.getCaseTemplates("simple:case");
+        JSONArray array = caseTemplateService.getCaseTemplates(CaseHelper.SIMPLE_CASE_TYPE);
         Assert.assertEquals("Wrong number of retrieved case templates", 1, array.length());
         JSONObject templateInfo = array.getJSONObject(0);
 
