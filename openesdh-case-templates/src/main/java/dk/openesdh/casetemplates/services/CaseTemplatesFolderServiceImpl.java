@@ -3,6 +3,7 @@ package dk.openesdh.casetemplates.services;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -35,17 +36,19 @@ public class CaseTemplatesFolderServiceImpl implements CaseTemplatesFolderServic
     }
 
     @Override
-    public NodeRef getCaseTypeTemplatesFolder(QName caseTypeQName) {
+    public NodeRef getOrCreateCaseTypeTemplatesFolder(QName caseTypeQName) {
         String caseType = caseTypeQName.toPrefixString(namespaceService);
-        return getCaseTypeTemplatesFolder(caseType);
-    }
-
-    @Override
-    public NodeRef getCaseTypeTemplatesFolder(String caseType) {
         NodeRef templatesRootRef = getCaseTemplatesRootFolder();
         String sCaseType = caseType.replace(':', '_');
         return oeFoldersService.getFolderOptional(templatesRootRef, sCaseType)
                 .orElseGet(() -> createCaseTemplatesFolder(templatesRootRef, sCaseType));
+    }
+
+    @Override
+    public Optional<NodeRef> getCaseTypeTemplatesFolder(String caseType) {
+        NodeRef templatesRootRef = getCaseTemplatesRootFolder();
+        String sCaseType = caseType.replace(':', '_');
+        return oeFoldersService.getFolderOptional(templatesRootRef, sCaseType);
     }
     
     private NodeRef createCaseTemplatesFolder(NodeRef templatesRootRef, String caseType){

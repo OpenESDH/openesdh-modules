@@ -1,5 +1,7 @@
 package dk.openesdh.casetemplates.services;
 
+import java.util.Optional;
+
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 
@@ -11,8 +13,8 @@ public interface CaseTemplatesFolderService {
 
     NodeRef getCaseTemplatesRootFolder();
 
-    NodeRef getCaseTypeTemplatesFolder(QName caseTypeQName);
+    NodeRef getOrCreateCaseTypeTemplatesFolder(QName caseTypeQName);
 
-    NodeRef getCaseTypeTemplatesFolder(String caseType);
+    Optional<NodeRef> getCaseTypeTemplatesFolder(String caseType);
 
 }

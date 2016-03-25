@@ -71,12 +71,18 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
 
     @Override
     public JSONArray getCaseTemplates(String caseType) {
-        NodeRef caseTypeTemplatesFolder = caseTemplatesFolderService.getCaseTypeTemplatesFolder(caseType);
+        return caseTemplatesFolderService.getCaseTypeTemplatesFolder(caseType)
+                .map(this::getCaseTemplates)
+                .orElse(new JSONArray());
+        
+    }
+    
+    private JSONArray getCaseTemplates(NodeRef caseTypeTemplatesFolder){
         return nodeService.getChildAssocs(caseTypeTemplatesFolder, ContentModel.ASSOC_CONTAINS, null)
-            .stream()
-            .map(ChildAssociationRef::getChildRef)
-            .map(this::getCaseTemplateJson)
-            .collect(JSONArrayCollector.json());
+                .stream()
+                .map(ChildAssociationRef::getChildRef)
+                .map(this::getCaseTemplateJson)
+                .collect(JSONArrayCollector.json());
     }
     
     @Override
@@ -140,7 +146,7 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
 
     private void moveTemplateToProperFolder(NodeRef caseTemplateRef) {
         QName caseType = nodeService.getType(caseTemplateRef);
-        NodeRef caseTypeTemplatesFolder = caseTemplatesFolderService.getCaseTypeTemplatesFolder(caseType);
+        NodeRef caseTypeTemplatesFolder = caseTemplatesFolderService.getOrCreateCaseTypeTemplatesFolder(caseType);
         String templateName = (String) nodeService.getProperty(caseTemplateRef, ContentModel.PROP_NAME);
         nodeService.moveNode(caseTemplateRef, caseTypeTemplatesFolder, ContentModel.ASSOC_CONTAINS,
                 QName.createQName(templateName));
