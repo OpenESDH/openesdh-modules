@@ -2,13 +2,17 @@ package dk.openesdh.casetemplates.services;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.json.JSONArray;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import dk.openesdh.casetemplates.model.CaseTemplatesModule;
+import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
@@ -49,10 +54,14 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
     @Autowired
     @Qualifier("CaseDocumentsSearchService")
     private CaseDocumentsSearchServiceImpl caseDocumentsSearchService;
+    @Autowired
+    @Qualifier("PersonService")
+    private PersonService personService;
 
     @Override
     public void onCreateCaseTemplate(final NodeRef caseTemplateRef) {
         tr.runAsAdmin(() -> {
+            setDefaultOwnerIfNone(caseTemplateRef);
             moveTemplateToProperFolder(caseTemplateRef);
             nodeService.addAspect(caseTemplateRef, CaseTemplatesModule.ASPECT_CT_CASE_TEMPLATE, null);
             caseService.createFolderForCaseDocuments(caseTemplateRef);
@@ -117,6 +126,16 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
         } catch (JSONException e) {
             throw new AlfrescoRuntimeException("Error retrieving case template document", e);
         }
+    }
+
+    private void setDefaultOwnerIfNone(NodeRef caseTemplateRef) {
+        Optional<AssociationRef> owner = nodeService
+                .getTargetAssocs(caseTemplateRef, OpenESDHModel.ASSOC_CASE_OWNERS).stream().findAny();
+        if (owner.isPresent()) {
+            return;
+        }
+        nodeService.createAssociation(caseTemplateRef,
+                personService.getPerson(AuthenticationUtil.getAdminUserName()), OpenESDHModel.ASSOC_CASE_OWNERS);
     }
 
     private void moveTemplateToProperFolder(NodeRef caseTemplateRef) {
