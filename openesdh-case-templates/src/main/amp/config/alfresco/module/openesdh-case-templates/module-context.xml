@@ -37,5 +37,5 @@
     </bean>
     
     <context:annotation-config/>
-    <context:component-scan base-package="dk.openesdh.casetemplates.services, dk.openesdh.casetemplates.webscripts" />
+    <context:component-scan base-package="dk.openesdh.casetemplates.tenant, dk.openesdh.casetemplates.services, dk.openesdh.casetemplates.webscripts" />
 </beans>
