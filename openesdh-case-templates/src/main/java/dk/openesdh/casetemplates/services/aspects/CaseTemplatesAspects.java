@@ -1,4 +1,4 @@
-package dk.openesdh.casetemplates.services;
+package dk.openesdh.casetemplates.services.aspects;
 
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import dk.openesdh.casetemplates.services.CaseTemplateService;
+import dk.openesdh.casetemplates.services.CaseTemplatesFolderService;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.DocumentService;
