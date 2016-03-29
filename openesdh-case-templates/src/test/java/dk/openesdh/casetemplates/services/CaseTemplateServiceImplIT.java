@@ -72,7 +72,7 @@ public class CaseTemplateServiceImplIT {
     private TransactionRunner tr;
     @Autowired
     @Qualifier("CaseTemplatesFolderService")
-    private CaseTemplatesFolderServiceImpl caseTemplatesFolderService;
+    private CaseTemplatesFolderService caseTemplatesFolderService;
     @Autowired
     @Qualifier("PersonService")
     private PersonService personService;
