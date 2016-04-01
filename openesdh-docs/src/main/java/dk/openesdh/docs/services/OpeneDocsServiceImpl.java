@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,9 +91,10 @@ public class OpeneDocsServiceImpl implements OpeneDocsService {
     }
     
     private Stream<NodeRef> getDocsTemplatesStream(String... extensions){
-        List<String> extList = Arrays.stream(extensions)
+        Set<String> extList = Arrays.stream(extensions)
                 .map(String::toLowerCase)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
+
         return getDocsTemplatesStream()
                 .filter(tplRef -> matchTemplateExtension(tplRef, extList));
     }
@@ -104,11 +106,9 @@ public class OpeneDocsServiceImpl implements OpeneDocsService {
                 .map(ChildAssociationRef::getChildRef);
     }
 
-    private boolean matchTemplateExtension(NodeRef templateRef, List<String> extensions) {
+    private boolean matchTemplateExtension(NodeRef templateRef, Set<String> extensions) {
         String name = nodeService.getProperty(templateRef, ContentModel.PROP_NAME).toString().toLowerCase();
-        return extensions.stream()
-                .filter(ext -> StringUtils.endsWith(name, ext))
-                .findAny()
-                .isPresent();
+        String ext = FilenameUtils.getExtension(name).toLowerCase();
+        return extensions.contains(ext);
     }
 }
