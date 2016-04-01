@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dk.openesdh</groupId>
+    <artifactId>openesdh-docs</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>OpenESDH Documents AMP</name>
+    <packaging>amp</packaging>
+
+    <parent>
+        <groupId>dk.openesdh</groupId>
+        <artifactId>openesdh-modules</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco-repository</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco-remote-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.dynamicextensionsalfresco</groupId>
+            <artifactId>webscripts</artifactId>
+            <version>${dynamicextensionsalfresco.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.dynamicextensionsalfresco</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${dynamicextensionsalfresco.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>${openesdh.repo.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>${openesdh.repo.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-simple-case</artifactId>
+            <version>${openesdh.simple.case.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dk.openesdh</groupId>
+            <artifactId>openesdh-repo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>amp</type>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- remove any old test data-->
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>alf_data_dev</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                  <includes>
+                    <include>**/*IT.java</include>
+                  </includes>
+                </configuration>
+              </plugin>
+        </plugins>
+    </build>
+</project>

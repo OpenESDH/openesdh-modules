@@ -17,6 +17,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 
 import dk.openesdh.doctemplates.api.services.OfficeTemplateService;
+import dk.openesdh.repo.webscripts.WebScriptParams;
 import dk.openesdh.repo.webscripts.utils.WebScriptUtils;
 
 @Component
@@ -30,10 +31,10 @@ public class OfficeTemplateManagmentWebscript {
 
     @Uri(value = "/api/openesdh/officeDocTemplate", method = HttpMethod.POST, defaultFormat = "json", multipartProcessing = true)
     public Resolution post(
-            @RequestParam(value = "title", required = true) String title,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "doc_type", required = true) NodeRef docType,
-            @RequestParam(value = "doc_category", required = true) NodeRef docCategory,
+            @RequestParam(value = WebScriptParams.TITLE, required = true) String title,
+            @RequestParam(value = WebScriptParams.DESCRIPTION, required = false) String description,
+            @RequestParam(value = WebScriptParams.DOC_TYPE, required = true) NodeRef docType,
+            @RequestParam(value = WebScriptParams.DOC_CATEGORY, required = true) NodeRef docCategory,
             @FileField("filedata") FormField fileField) {
 
         officeTemplateService.saveTemplate(

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0"
+           xmlns:cm="http://www.alfresco.org/model/content/1.0"
+           xmlns:app="http://www.alfresco.org/model/application/1.0"
+           xmlns:emailserver="http://www.alfresco.org/model/emailserver/1.0"
+           xmlns:sys="http://www.alfresco.org/model/system/1.0">
+    <cm:folder view:childName="oe:docTemplates">
+        <app:uifacets />
+        <cm:name>docTemplates</cm:name>
+        <app:icon>space-icon-default</app:icon>
+        <cm:title>OpenESDH document templates</cm:title>
+        <view:aspects>
+            <cm:titled />
+            <cm:auditable />
+            <app:uifacets />
+            <sys:referenceable />
+        </view:aspects>
+        <view:acl view:inherit="false">
+            <view:ace view:access="ALLOWED">
+                <view:authority>GROUP_EVERYONE</view:authority>
+                <view:permission>Consumer</view:permission>
+            </view:ace>
+        </view:acl>
+        <view:properties>
+            <sys:store-protocol>workspace</sys:store-protocol>
+            <sys:store-identifier>SpacesStore</sys:store-identifier>
+            <sys:node-uuid>906ee816-c622-4977-889b-c591e7cc5e13</sys:node-uuid>
+            <cm:description>This folder stores OpenESDH document templates</cm:description>
+        </view:properties>
+        <cm:contains>
+            <cm:content view:childName="oe:blankDocx">
+                <view:aspects>
+                    <cm:titled></cm:titled>
+                    <cm:author></cm:author>
+                    <app:inlineeditable></app:inlineeditable>
+                    <sys:referenceable></sys:referenceable>
+                </view:aspects>
+                <view:properties>
+                    <app:editInline>true</app:editInline>
+                    <cm:content>contentUrl=classpath:alfresco/module/openesdh-docs/templates/blank.docx|mimetype=application/vnd.openxmlformats-officedocument.wordprocessingml.document</cm:content>
+                    <cm:author>admin</cm:author>
+                    <cm:name>blank.docx</cm:name>
+                    <cm:title>Blank MS Word document</cm:title>
+                    <sys:node-uuid>b408a4f4-4b73-499e-b5a4-0590114cc612</sys:node-uuid>
+                </view:properties>
+                <view:associations></view:associations>
+            </cm:content>
+            <cm:content view:childName="oe:blankXlsx">
+                <view:aspects>
+                    <cm:titled></cm:titled>
+                    <cm:author></cm:author>
+                    <app:inlineeditable></app:inlineeditable>
+                    <sys:referenceable></sys:referenceable>
+                </view:aspects>
+                <view:properties>
+                    <app:editInline>true</app:editInline>
+                    <cm:content>contentUrl=classpath:alfresco/module/openesdh-docs/templates/blank.xlsx|mimetype=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</cm:content>
+                    <cm:author>admin</cm:author>
+                    <cm:name>blank.xlsx</cm:name>
+                    <cm:title>Blank MS Excel document</cm:title>
+                    <sys:node-uuid>65313ab4-4a27-4058-b1f9-151f9b339db6</sys:node-uuid>
+                </view:properties>
+                <view:associations></view:associations>
+            </cm:content>
+            <cm:content view:childName="oe:blankPptx">
+                <view:aspects>
+                    <cm:titled></cm:titled>
+                    <cm:author></cm:author>
+                    <app:inlineeditable></app:inlineeditable>
+                    <sys:referenceable></sys:referenceable>
+                </view:aspects>
+                <view:properties>
+                    <app:editInline>true</app:editInline>
+                    <cm:content>contentUrl=classpath:alfresco/module/openesdh-docs/templates/blank.pptx|mimetype=application/vnd.openxmlformats-officedocument.presentationml.presentation</cm:content>
+                    <cm:author>admin</cm:author>
+                    <cm:name>blank.pptx</cm:name>
+                    <cm:title>Blank MS PowerPoint document</cm:title>
+                    <sys:node-uuid>abb8eaad-3732-4204-95f2-4741cb17d709</sys:node-uuid>
+                </view:properties>
+                <view:associations></view:associations>
+            </cm:content>
+        </cm:contains>
+    </cm:folder>
+</view:view>

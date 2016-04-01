@@ -7,6 +7,9 @@ alf_data_dev
 .project
 .classpath
 .settings
+run.sh
+run.bat
 *.log*
 nbactions.xml
 nbproject
+*/src/main/amp/config/alfresco/module/*/module.properties

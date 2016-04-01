@@ -60,5 +60,6 @@
         <module>openesdh-project-rooms</module>
         <module>openesdh-case-templates</module>
         <module>openesdh-google-docs</module>
-    </modules>
+        <module>openesdh-docs</module>
+  </modules>
 </project>
