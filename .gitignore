@@ -7,10 +7,9 @@ alf_data_dev
 .project
 .classpath
 .settings
+run.sh
+run.bat
 *.log*
 nbactions.xml
 nbproject
-openesdh-case-templates/src/main/amp/config/alfresco/module/openesdh-case-templates/module.properties
-openesdh-doc-templates/src/main/amp/config/alfresco/module/openesdh-doc-templates/module.properties
-openesdh-docs/src/main/amp/config/alfresco/module/openesdh-docs/module.properties
-openesdh-staff-case/src/main/amp/config/alfresco/module/openesdh-staff-case/module.properties
+*/src/main/amp/config/alfresco/module/*/module.properties
