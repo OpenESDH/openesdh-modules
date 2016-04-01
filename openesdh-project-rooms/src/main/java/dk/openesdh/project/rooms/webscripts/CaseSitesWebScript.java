@@ -22,6 +22,7 @@ import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.project.rooms.services.CaseSiteDocumentsService;
 import dk.openesdh.project.rooms.services.CaseSitesService;
 import dk.openesdh.repo.services.NodeInfoService;
+import dk.openesdh.repo.webscripts.WebScriptParams;
 import dk.openesdh.repo.webscripts.utils.WebScriptUtils;
 
 @Component
@@ -61,7 +62,7 @@ public class CaseSitesWebScript {
     }
 
     @Uri("/api/openesdh/case/{caseId}/sites")
-    public Resolution getCaseSites(@UriVariable(WebScriptUtils.CASE_ID) String caseId) throws IOException {
+    public Resolution getCaseSites(@UriVariable(WebScriptParams.CASE_ID) String caseId) throws IOException {
         return WebScriptUtils.jsonResolution(caseSitesService.getCaseSites(caseId));
     }
 

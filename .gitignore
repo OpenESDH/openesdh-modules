@@ -10,3 +10,7 @@ alf_data_dev
 *.log*
 nbactions.xml
 nbproject
+openesdh-case-templates/src/main/amp/config/alfresco/module/openesdh-case-templates/module.properties
+openesdh-doc-templates/src/main/amp/config/alfresco/module/openesdh-doc-templates/module.properties
+openesdh-docs/src/main/amp/config/alfresco/module/openesdh-docs/module.properties
+openesdh-staff-case/src/main/amp/config/alfresco/module/openesdh-staff-case/module.properties
