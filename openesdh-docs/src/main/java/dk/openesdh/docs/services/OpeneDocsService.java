@@ -15,4 +15,9 @@ public interface OpeneDocsService {
     NodeRef createDocument(NodeRef targetFolderRef, NodeRef sourceTemplateRef, Map<QName, Serializable> props);
 
     JSONArray getDocumentTemplatesJson(String... extensions);
+
+    void updateTemplate(NodeRef templateRef, String title, String description, NodeRef docType,
+            NodeRef docCategory);
+
+    JSONArray getDocumentTemplatesJson();
 }
