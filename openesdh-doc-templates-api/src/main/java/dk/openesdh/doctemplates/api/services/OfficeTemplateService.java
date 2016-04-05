@@ -1,8 +1,6 @@
 package dk.openesdh.doctemplates.api.services;
 
-import dk.openesdh.doctemplates.api.model.OfficeTemplate;
-import dk.openesdh.doctemplates.api.model.OfficeTemplateMerged;
-
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
@@ -10,6 +8,9 @@ import java.util.Map;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.json.simple.JSONObject;
+
+import dk.openesdh.doctemplates.api.model.OfficeTemplate;
+import dk.openesdh.doctemplates.api.model.OfficeTemplateMerged;
 
 /**
  * Created by syastrov on 9/23/15.
@@ -105,7 +106,7 @@ public interface OfficeTemplateService {
      * @param caseId
      * @param json
      * @return
-     * @throws Exception
+     * @throws java.io.IOException
      */
-    List<OfficeTemplateMerged> getMergedTemplates(NodeRef templateNodeRef, String caseId, JSONObject json) throws Exception;
+    List<OfficeTemplateMerged> getMergedTemplates(NodeRef templateNodeRef, String caseId, JSONObject json) throws IOException;
 }

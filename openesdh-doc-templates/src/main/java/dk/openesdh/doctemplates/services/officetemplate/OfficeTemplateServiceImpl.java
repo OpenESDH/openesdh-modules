@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -220,7 +221,7 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
 
     @Override
     public OfficeTemplateMerged renderTemplate(OfficeTemplate template, String caseId, NodeRef receiver,
-            Map<String, Serializable> model) throws Exception {
+            Map<String, Serializable> model) throws IOException {
         model.putAll(getCaseInfo(caseId));
         model.putAll(getUserInfo());
         if (receiver != null) {
@@ -248,11 +249,12 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
         ContentReader transformedReader = null;
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
             renderODFTemplate(inputStream, outputStream, model);
-
             ContentReader reader = new FileContentReader(file);
             reader.setMimetype(mimetypeService.guessMimetype(null, templateReader));
             transformedReader = transformContent(reader, DEFAULT_TARGET_MIME_TYPE, options);
             reader.setMimetype(DEFAULT_TARGET_MIME_TYPE);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         } finally {
             boolean delete = file.delete();
             if (!delete) {
@@ -389,7 +391,7 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<OfficeTemplateMerged> getMergedTemplates(NodeRef templateNodeRef, String caseId, JSONObject json) throws Exception {
+    public List<OfficeTemplateMerged> getMergedTemplates(NodeRef templateNodeRef, String caseId, JSONObject json) throws IOException {
         OfficeTemplate template = getTemplate(templateNodeRef, true, false);
         JSONObject fieldData = (JSONObject) json.get("fieldData");
         JSONArray receivers = (JSONArray) fieldData.get("receivers");
