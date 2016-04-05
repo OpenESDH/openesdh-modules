@@ -28,5 +28,5 @@
     </bean>
 
     <context:annotation-config/>
-    <context:component-scan base-package="dk.openesdh.docs.services, dk.openesdh.docs.webscripts" />
+    <context:component-scan base-package="dk.openesdh.docs.tenant, dk.openesdh.docs.services, dk.openesdh.docs.webscripts" />
 </beans>
