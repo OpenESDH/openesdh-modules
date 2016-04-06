@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +18,7 @@ import com.tradeshift.test.remote.RemoteTestRunner;
 
 import dk.openesdh.doctemplates.model.DocumentTemplateInfo;
 import dk.openesdh.doctemplates.services.TemplateTester;
+import dk.openesdh.repo.helper.SolrTest;
 
 @RunWith(RemoteTestRunner.class)
 @Remote(runnerClass = SpringJUnit4ClassRunner.class)
@@ -27,8 +29,8 @@ public class DocumentTemplateServiceIT extends TemplateTester {
     @Qualifier("DocumentTemplateService")
     private DocumentTemplateService documentTemplateService;
 
-//    solr test
-//    @Test
+    @Test
+    @Category(SolrTest.class)
     public void testFindTemplates() {
         List<DocumentTemplateInfo> templates = documentTemplateService.findTemplates("Tes", 10);
         assertEquals("Template is found", 1, templates.size());
