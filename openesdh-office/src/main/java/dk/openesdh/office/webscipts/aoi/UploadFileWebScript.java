@@ -1,9 +1,5 @@
 package dk.openesdh.office.webscipts.aoi;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
@@ -16,15 +12,22 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.webscripts.*;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.extensions.webscripts.Status;
+import org.springframework.extensions.webscripts.WebScriptException;
+import org.springframework.extensions.webscripts.WebScriptRequest;
+import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.extensions.webscripts.servlet.FormData;
 import org.springframework.extensions.webscripts.servlet.FormData.FormField;
 import org.springframework.stereotype.Component;
 
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+
 import dk.openesdh.repo.model.OpenESDHModel;
-import dk.openesdh.repo.services.documents.DocumentCategoryService;
+import dk.openesdh.repo.services.classification.ClassificatorManagementService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.services.documents.DocumentTypeService;
 
 @Component
 @WebScript(description = "Upload file to specified folder", families = {"AOI"})
@@ -34,9 +37,11 @@ public class UploadFileWebScript {
     @Autowired
     private DocumentService documentService;
     @Autowired
-    private DocumentTypeService documentTypeService;
+    @Qualifier("DocumentTypeService")
+    private ClassificatorManagementService documentTypeService;
     @Autowired
-    private DocumentCategoryService documentCategoryService;
+    @Qualifier("DocumentCategoryService")
+    private ClassificatorManagementService documentCategoryService;
 
     @Uri(value = "/dk-openesdh-aoi-save", method = HttpMethod.POST, defaultFormat = "json")
     public void saveFile(WebScriptRequest webScriptRequest, WebScriptResponse webScriptResponse) throws IOException {
@@ -102,12 +107,12 @@ public class UploadFileWebScript {
     }
 
     private NodeRef getDocumentTypeLetter() {
-        return documentTypeService.getDocumentTypeByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
+        return documentTypeService.getClassifValueByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
                 .orElseThrow(() -> new WebScriptException("Document type \"letter\" not found")).getNodeRef();
     }
 
     private NodeRef getDocumentCategoryOther() {
-        return documentCategoryService.getDocumentCategoryByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
+        return documentCategoryService.getClassifValueByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
                 .orElseThrow(() -> new WebScriptException("Document type \"other\" not found")).getNodeRef();
     }
 }

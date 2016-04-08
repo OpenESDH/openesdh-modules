@@ -9,14 +9,14 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.stereotype.Service;
 
 import dk.openesdh.office.model.OutlookModel;
 import dk.openesdh.repo.model.OpenESDHModel;
-import dk.openesdh.repo.services.documents.DocumentCategoryService;
+import dk.openesdh.repo.services.classification.ClassificatorManagementService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.services.documents.DocumentTypeService;
 
 @Service("OfficeService")
 public class OfficeServiceImpl implements OfficeService {
@@ -26,9 +26,11 @@ public class OfficeServiceImpl implements OfficeService {
     @Autowired
     private DocumentService documentService;
     @Autowired
-    private DocumentTypeService documentTypeService;
+    @Qualifier("DocumentTypeService")
+    private ClassificatorManagementService documentTypeService;
     @Autowired
-    private DocumentCategoryService documentCategoryService;
+    @Qualifier("DocumentCategoryService")
+    private ClassificatorManagementService documentCategoryService;
 
     public NodeRef createEmailDocument(String caseId, String name, String bodyText) {
         NodeRef documentFolder = documentService.createCaseDocument(
@@ -52,12 +54,12 @@ public class OfficeServiceImpl implements OfficeService {
     }
 
     private NodeRef getDocumentTypeLetter() {
-        return documentTypeService.getDocumentTypeByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
+        return documentTypeService.getClassifValueByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
                 .orElseThrow(() -> new WebScriptException("Document type \"letter\" not found")).getNodeRef();
     }
 
     private NodeRef getDocumentCategoryOther() {
-        return documentCategoryService.getDocumentCategoryByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
+        return documentCategoryService.getClassifValueByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
                 .orElseThrow(() -> new WebScriptException("Document type \"other\" not found")).getNodeRef();
     }
 }
