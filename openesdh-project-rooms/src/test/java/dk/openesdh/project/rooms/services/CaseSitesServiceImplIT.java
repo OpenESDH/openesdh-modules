@@ -296,9 +296,9 @@ public class CaseSitesServiceImplIT {
         Map<QName, Serializable> props = new HashMap<>();
         props.put(ContentModel.PROP_NAME, NEW_SITE_DOC_NAME);
         props.put(OpenESDHModel.PROP_DOC_TYPE,
-                documentTypeService.getDocumentTypes().stream().skip(1).findFirst().get().getNodeRef());
+                documentTypeService.getClassifValues().stream().skip(1).findFirst().get().getNodeRef());
         props.put(OpenESDHModel.PROP_DOC_CATEGORY,
-                documentCategoryService.getDocumentCategories().stream().skip(1).findFirst().get().getNodeRef());
+                documentCategoryService.getClassifValues().stream().skip(1).findFirst().get().getNodeRef());
         NodeRef siteDocRef = nodeService.createNode(siteDocsFolder, ContentModel.ASSOC_CONTAINS,
                 QName.createQName("newSiteDoc"), ContentModel.TYPE_CONTENT, props).getChildRef();
         ContentWriter writer = contentService.getWriter(siteDocRef, ContentModel.PROP_CONTENT, true);

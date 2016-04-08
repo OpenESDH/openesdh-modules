@@ -28,14 +28,12 @@ import com.tradeshift.test.remote.RemoteTestRunner;
 import dk.openesdh.repo.helper.CaseDocumentTestHelper;
 import dk.openesdh.repo.helper.CaseHelper;
 import dk.openesdh.repo.model.CaseDocument;
-import dk.openesdh.repo.model.DocumentCategory;
-import dk.openesdh.repo.model.DocumentType;
+import dk.openesdh.repo.model.ClassifValue;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
-import dk.openesdh.repo.services.documents.DocumentCategoryService;
+import dk.openesdh.repo.services.classification.ClassificatorManagementService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.services.documents.DocumentTypeService;
 import dk.openesdh.simplecase.model.SimpleCaseModel;
 
 @RunWith(RemoteTestRunner.class)
@@ -74,10 +72,10 @@ public class OpeneDocsServiceImplIT {
     private DocumentService documentService;
     @Autowired
     @Qualifier("DocumentTypeService")
-    private DocumentTypeService documentTypeService;
+    private ClassificatorManagementService documentTypeService;
     @Autowired
     @Qualifier("DocumentCategoryService")
-    private DocumentCategoryService documentCategoryService;
+    private ClassificatorManagementService documentCategoryService;
     @Autowired
     @Qualifier("OpeneDocsService")
     private OpeneDocsService openeDocsService;
@@ -145,11 +143,11 @@ public class OpeneDocsServiceImplIT {
         Assert.assertEquals("Wrong name of the case document", docName, document.getTitle());
     }
 
-    private DocumentType getFirstDocumentType() {
-        return documentTypeService.getDocumentTypes().stream().findFirst().get();
+    private ClassifValue getFirstDocumentType() {
+        return documentTypeService.getClassifValues().stream().findFirst().get();
     }
 
-    private DocumentCategory getFirstDocumentCategory() {
-        return documentCategoryService.getDocumentCategories().stream().findFirst().get();
+    private ClassifValue getFirstDocumentCategory() {
+        return documentCategoryService.getClassifValues().stream().findFirst().get();
     }
 }
