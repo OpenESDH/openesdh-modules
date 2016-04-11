@@ -26,8 +26,9 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 
 import dk.openesdh.repo.model.OpenESDHModel;
-import dk.openesdh.repo.services.classification.ClassificatorManagementService;
+import dk.openesdh.repo.services.documents.DocumentCategoryService;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.documents.DocumentTypeService;
 
 @Component
 @WebScript(description = "Upload file to specified folder", families = {"AOI"})
@@ -38,10 +39,10 @@ public class UploadFileWebScript {
     private DocumentService documentService;
     @Autowired
     @Qualifier("DocumentTypeService")
-    private ClassificatorManagementService documentTypeService;
+    private DocumentTypeService documentTypeService;
     @Autowired
     @Qualifier("DocumentCategoryService")
-    private ClassificatorManagementService documentCategoryService;
+    private DocumentCategoryService documentCategoryService;
 
     @Uri(value = "/dk-openesdh-aoi-save", method = HttpMethod.POST, defaultFormat = "json")
     public void saveFile(WebScriptRequest webScriptRequest, WebScriptResponse webScriptResponse) throws IOException {

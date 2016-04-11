@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 
 import dk.openesdh.office.model.OutlookModel;
 import dk.openesdh.repo.model.OpenESDHModel;
-import dk.openesdh.repo.services.classification.ClassificatorManagementService;
+import dk.openesdh.repo.services.documents.DocumentCategoryService;
 import dk.openesdh.repo.services.documents.DocumentService;
+import dk.openesdh.repo.services.documents.DocumentTypeService;
 
 @Service("OfficeService")
 public class OfficeServiceImpl implements OfficeService {
@@ -27,10 +28,10 @@ public class OfficeServiceImpl implements OfficeService {
     private DocumentService documentService;
     @Autowired
     @Qualifier("DocumentTypeService")
-    private ClassificatorManagementService documentTypeService;
+    private DocumentTypeService documentTypeService;
     @Autowired
     @Qualifier("DocumentCategoryService")
-    private ClassificatorManagementService documentCategoryService;
+    private DocumentCategoryService documentCategoryService;
 
     public NodeRef createEmailDocument(String caseId, String name, String bodyText) {
         NodeRef documentFolder = documentService.createCaseDocument(

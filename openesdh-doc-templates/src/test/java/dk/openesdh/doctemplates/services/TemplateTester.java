@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import dk.openesdh.doctemplates.api.services.OfficeTemplateService;
-import dk.openesdh.repo.model.ClassifValue;
-import dk.openesdh.repo.services.classification.ClassificatorManagementService;
+import dk.openesdh.repo.model.DocumentCategory;
+import dk.openesdh.repo.model.DocumentType;
+import dk.openesdh.repo.services.documents.DocumentCategoryService;
+import dk.openesdh.repo.services.documents.DocumentTypeService;
 
 public abstract class TemplateTester {
 
@@ -27,10 +29,10 @@ public abstract class TemplateTester {
     protected OfficeTemplateService officeTemplateService;
     @Autowired
     @Qualifier("DocumentTypeService")
-    private ClassificatorManagementService documentTypeService;
+    private DocumentTypeService documentTypeService;
     @Autowired
     @Qualifier("DocumentCategoryService")
-    private ClassificatorManagementService documentCategoryService;
+    private DocumentCategoryService documentCategoryService;
 
     @Before
     public void setUp() throws Exception {
@@ -53,11 +55,11 @@ public abstract class TemplateTester {
         }
     }
 
-    private ClassifValue getFirstDocumentType() {
+    private DocumentType getFirstDocumentType() {
         return documentTypeService.getClassifValues().stream().findFirst().get();
     }
 
-    private ClassifValue getFirstDocumentCategory() {
+    private DocumentCategory getFirstDocumentCategory() {
         return documentCategoryService.getClassifValues().stream().findFirst().get();
     }
 
