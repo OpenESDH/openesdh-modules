@@ -262,10 +262,10 @@ public class CaseTemplateServiceImplIT {
     }
 
     private DocumentType getFirstDocumentType() {
-        return documentTypeService.getDocumentTypes().stream().findFirst().get();
+        return documentTypeService.getClassifValues().stream().findFirst().get();
     }
 
     private DocumentCategory getFirstDocumentCategory() {
-        return documentCategoryService.getDocumentCategories().stream().findFirst().get();
+        return documentCategoryService.getClassifValues().stream().findFirst().get();
     }
 }

@@ -9,6 +9,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +27,10 @@ public class OfficeServiceImpl implements OfficeService {
     @Autowired
     private DocumentService documentService;
     @Autowired
+    @Qualifier("DocumentTypeService")
     private DocumentTypeService documentTypeService;
     @Autowired
+    @Qualifier("DocumentCategoryService")
     private DocumentCategoryService documentCategoryService;
 
     public NodeRef createEmailDocument(String caseId, String name, String bodyText) {
@@ -52,12 +55,12 @@ public class OfficeServiceImpl implements OfficeService {
     }
 
     private NodeRef getDocumentTypeLetter() {
-        return documentTypeService.getDocumentTypeByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
+        return documentTypeService.getClassifValueByName(OpenESDHModel.DOCUMENT_TYPE_LETTER)
                 .orElseThrow(() -> new WebScriptException("Document type \"letter\" not found")).getNodeRef();
     }
 
     private NodeRef getDocumentCategoryOther() {
-        return documentCategoryService.getDocumentCategoryByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
+        return documentCategoryService.getClassifValueByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
                 .orElseThrow(() -> new WebScriptException("Document type \"other\" not found")).getNodeRef();
     }
 }
