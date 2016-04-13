@@ -1,7 +1,5 @@
 package dk.openesdh.doctemplates.services.officetemplate;
 
-import static dk.openesdh.doctemplates.api.services.OfficeTemplateService.OPENESDH_DOC_TEMPLATES_DEFAULT_PATH;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -94,7 +92,7 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
     @Qualifier("mimetypeService")
     private MimetypeService mimetypeService;
     @Autowired
-    @Qualifier("CaseService")
+    @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
     @Autowired
     @Qualifier("CaseTypeService")
@@ -103,10 +101,10 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
     @Qualifier("PersonService")
     private PersonService personService;
     @Autowired
-    @Qualifier("DocumentService")
+    @Qualifier(DocumentService.BEAN_ID)
     private DocumentService documentService;
     @Autowired
-    @Qualifier("DocumentEmailService")
+    @Qualifier(DocumentEmailService.BEAN_ID)
     private DocumentEmailService documentEmailService;
 
     @Override
