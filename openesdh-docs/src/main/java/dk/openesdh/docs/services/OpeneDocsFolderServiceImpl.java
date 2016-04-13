@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.system.OpenESDHFoldersService;
 
 @Service("OpeneDocsFolderService")
@@ -14,9 +15,15 @@ public class OpeneDocsFolderServiceImpl implements OpeneDocsFolderService {
     @Qualifier("OpenESDHFoldersService")
     private OpenESDHFoldersService oeFoldersService;
 
+    @Autowired
+    @Qualifier("TransactionRunner")
+    private TransactionRunner tr;
+
     @Override
     public NodeRef getDocsTemplatesFolder() {
-        return oeFoldersService.getFolder(oeFoldersService.getSubsystemRootNodeRef(), "docTemplates");
+        return tr.runAsSystem(() -> {
+            return oeFoldersService.getFolder(oeFoldersService.getSubsystemRootNodeRef(), "docTemplates");
+        });
     }
 
 }
