@@ -5,6 +5,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -25,8 +27,10 @@ import org.springframework.stereotype.Service;
 import dk.openesdh.casetemplates.model.CaseTemplatesModule;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.TransactionRunner;
+import dk.openesdh.repo.services.cases.CaseCreatorServiceRegistry;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
+import dk.openesdh.repo.services.documents.DocumentService;
 import dk.openesdh.repo.services.xsearch.CaseDocumentsSearchServiceImpl;
 import dk.openesdh.repo.utils.JSONArrayCollector;
 
@@ -36,6 +40,9 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
     @Autowired
     @Qualifier(CaseService.BEAN_ID)
     private CaseService caseService;
+    @Autowired
+    @Qualifier(DocumentService.BEAN_ID)
+    private DocumentService documentService;
     @Autowired
     @Qualifier("CaseTemplatesFolderService")
     private CaseTemplatesFolderService caseTemplatesFolderService;
@@ -57,6 +64,30 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
     @Autowired
     @Qualifier("PersonService")
     private PersonService personService;
+    @Autowired
+    @Qualifier("CaseCreatorServiceRegistry")
+    private CaseCreatorServiceRegistry caseCreatorServiceRegistry;
+
+    @PostConstruct
+    public void init() {
+
+        caseCreatorServiceRegistry.registerCaseCreatorService(this::isCaseTemplateBeingCreated,
+                this::onCreateCaseTemplate);
+
+        caseService.addAfterCreateCaseListener(childAssocRef -> {
+            NodeRef caseRef = childAssocRef.getChildRef();
+            copyCaseTemplateDocsToCase(caseRef);
+        });
+
+        /**
+         * Checks whether provided doc belongs to case template while checking if
+         * belongs to case.
+         * This is due to case activity behaviour, which sends notifications when case document is uploaded.
+         * The behaviour is omitted by checking whether it's a template document.
+         * 
+         */
+        documentService.addDocBelongsToCaseChecker(docRef -> !isDocBelongsToCaseTemplate(docRef));
+    }
 
     @Override
     public void onCreateCaseTemplate(final NodeRef caseTemplateRef) {
@@ -110,13 +141,16 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
 
     @Override
     public void copyCaseTemplateDocsToCase(NodeRef caseRef) {
-        NodeRef templateRef = (NodeRef) nodeService.getProperty(caseRef, ContentModel.PROP_TEMPLATE);
-        if (Objects.isNull(templateRef)) {
-            return;
-        }
-        NodeRef caseDocsFolder = caseService.getDocumentsFolder(caseRef);
-        getCaseTemplateDocsStream(templateRef)
-                .forEach(docRecRef -> caseDocumentCopyService.copyDocumentToFolder(docRecRef, caseDocsFolder));
+        tr.runAsSystem(() -> {
+            NodeRef templateRef = (NodeRef) nodeService.getProperty(caseRef, ContentModel.PROP_TEMPLATE);
+            if (Objects.isNull(templateRef)) {
+                return null;
+            }
+            NodeRef caseDocsFolder = caseService.getDocumentsFolder(caseRef);
+            getCaseTemplateDocsStream(templateRef)
+                    .forEach(docRecRef -> caseDocumentCopyService.copyDocumentToFolder(docRecRef, caseDocsFolder));
+            return null;
+        });
     }
     
     @Override
@@ -126,6 +160,15 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
                 .collect(JSONArrayCollector.json());
     }
     
+    private boolean isCaseTemplateBeingCreated(ChildAssociationRef childAssocRef) {
+        NodeRef casesTemplatesFolder = caseTemplatesFolderService.getCaseTemplatesRootFolder();
+        return casesTemplatesFolder.equals(childAssocRef.getParentRef());
+    }
+
+    private void onCreateCaseTemplate(ChildAssociationRef assoc) {
+        onCreateCaseTemplate(assoc.getChildRef());
+    }
+
     private JSONObject getCaseTemplateDocument(NodeRef nodeRef) {
         try {
             return caseDocumentsSearchService.nodeToJSON(nodeRef);
