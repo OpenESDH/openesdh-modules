@@ -1,9 +1,7 @@
 package dk.openesdh.casetemplates.services.audit;
 
-import static dk.openesdh.repo.services.audit.AuditEntryHandler.ACTION;
 import static dk.openesdh.repo.services.audit.AuditEntryHandler.REC_TYPE.ATTACHMENT;
 import static dk.openesdh.repo.services.audit.AuditEntryHandler.REC_TYPE.DOCUMENT;
-import static dk.openesdh.repo.services.audit.AuditEntryHandler.TYPE;
 import static dk.openesdh.repo.services.audit.entryhandlers.TransactionPathAuditEntryHandler.TRANSACTION_ACTION;
 import static dk.openesdh.repo.services.audit.entryhandlers.TransactionPathAuditEntryHandler.TRANSACTION_ASPECT_ADD;
 import static dk.openesdh.repo.services.audit.entryhandlers.TransactionPathAuditEntryHandler.TRANSACTION_PROPERTIES_ADD;
