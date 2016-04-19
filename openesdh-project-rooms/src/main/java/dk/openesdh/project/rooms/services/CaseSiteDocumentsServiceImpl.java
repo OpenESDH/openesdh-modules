@@ -178,7 +178,9 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     }
 
     private void copySiteDocAsNewCaseDocument(CaseDocument siteDocument, NodeRef caseDocsFolderRef) {
-        caseDocumentCopyService.copyDocumentToFolder(siteDocument.nodeRefObject(), caseDocsFolderRef);
+        NodeRef documentCopyRef = caseDocumentCopyService.copyDocumentToFolder(siteDocument.nodeRefObject(),
+                caseDocsFolderRef);
+        caseDocumentCopyService.moveDocumentComments(siteDocument.nodeRefObject(), documentCopyRef);
     }
 
     private void copySiteDocumentBackToCase(CaseDocument siteDocument, CaseDocument originalCaseDocument) {
@@ -190,6 +192,8 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
             caseDocumentCopyService.copyDocContentRetainVersionLabel(siteMainDocRef, originalDocRef);
         }
         
+        caseDocumentCopyService.moveDocumentComments(siteDocument.nodeRefObject(), originalDocRecord);
+
         Map<NodeRef, CaseDocumentAttachment> caseDocAttachments = originalCaseDocument.getAttachments()
                 .stream()
                 .collect(Collectors.toMap(CaseDocumentAttachment::nodeRefObject, Function.identity()));

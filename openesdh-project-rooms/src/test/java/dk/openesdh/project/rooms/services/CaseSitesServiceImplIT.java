@@ -11,9 +11,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.query.PagingRequest;
+import org.alfresco.repo.forum.CommentService;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.version.VersionModel;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
+import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -118,6 +121,10 @@ public class CaseSitesServiceImplIT {
     private DocumentCategoryServiceImpl documentCategoryService;
 
     @Autowired
+    @Qualifier("CommentService")
+    private CommentService commentService;
+
+    @Autowired
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
@@ -130,6 +137,8 @@ public class CaseSitesServiceImplIT {
     private static final String TEST_DOCUMENT_ATTACHMENT_NAME = "TestDocumentAttachment";
     private static final String TEST_DOCUMENT_ATTACHMENT_FILE_NAME = TEST_DOCUMENT_ATTACHMENT_NAME + ".txt";
     private static final String NEW_SITE_DOC_NAME = "New site document";
+    private static final String TEST_COMMENT_TITLE = "Test comment";
+    private static final String TEST_COMMENT = "This is a test comment";
 
     private NodeRef testFolder;
     private NodeRef testCase1;
@@ -237,6 +246,8 @@ public class CaseSitesServiceImplIT {
         createNewDocVersion(siteDoc.getAttachments().get(0).nodeRefObject(), SITE_DOC_ATTACHMENT_CONTENT,
                 VersionType.MINOR);
 
+        commentService.createComment(siteDoc.nodeRefObject(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
+
         CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
         site.setSiteDocuments(siteDocs);
 
@@ -259,6 +270,12 @@ public class CaseSitesServiceImplIT {
                 .getContentString();
         Assert.assertEquals("Wrong case doc content after copy back to case", SITE_DOC_ATTACHMENT_CONTENT,
                 attachmentResultContent);
+
+        List<NodeRef> commentRefs = commentService.listComments(testDocumentRecFolder, new PagingRequest(100))
+                .getPage();
+        Assert.assertEquals("Project room document comments should be moved to case doc.", 1, commentRefs.size());
+        ContentReader reader = contentService.getReader(commentRefs.get(0), ContentModel.PROP_CONTENT);
+        Assert.assertEquals("Wrong case document comment", TEST_COMMENT, reader.getContentString());
     }
 
     @Test
@@ -268,9 +285,15 @@ public class CaseSitesServiceImplIT {
             createNewSiteDocument();
             return null;
         });
+
         CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
         List<CaseDocument> siteDocs = caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
         site.setSiteDocuments(siteDocs);
+
+        tr.runInTransaction(() -> {
+            commentService.createComment(siteDocs.get(0).nodeRefObject(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
+            return null;
+        });
 
         List<CaseDocument> caseDocsBeforeSiteClosed = documentService.getCaseDocumentsWithAttachments(testCaseId);
         
@@ -288,6 +311,14 @@ public class CaseSitesServiceImplIT {
                 .findAny();
         Assert.assertTrue("The case should contain newly created site document after site is closed",
                 newSiteDocInCase.isPresent());
+
+        List<NodeRef> commentRefs = commentService
+                .listComments(newSiteDocInCase.get().nodeRefObject(), new PagingRequest(100)).getPage();
+
+        Assert.assertEquals("Project room document comments should be moved to case doc.", 1, commentRefs.size());
+
+        ContentReader reader = contentService.getReader(commentRefs.get(0), ContentModel.PROP_CONTENT);
+        Assert.assertEquals("Wrong case document comment", TEST_COMMENT, reader.getContentString());
     }
 
     private void createNewSiteDocument() {
