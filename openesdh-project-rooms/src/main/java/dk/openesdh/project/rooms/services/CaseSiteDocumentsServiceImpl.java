@@ -18,7 +18,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.cmr.version.Version;
 import org.alfresco.service.cmr.version.VersionService;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -32,11 +31,9 @@ import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
 import dk.openesdh.repo.services.documents.DocumentService;
 import dk.openesdh.repo.services.lock.OELockService;
-import dk.openesdh.repo.services.xsearch.CaseDocumentsSearchServiceImpl;
 
 @Service("CaseSiteDocumentsService")
-public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
-        implements CaseSiteDocumentsService {
+public class CaseSiteDocumentsServiceImpl implements CaseSiteDocumentsService {
 
     @Autowired
     @Qualifier("SiteService")
@@ -76,14 +73,8 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     public void copySiteDocuments(CaseSite site, NodeRef targetFolder) throws Exception {
         for (CaseDocument document : site.getSiteDocuments()) {
             caseDocumentCopyService.copyDocumentToFolderRetainVersionLabels(document, targetFolder);
-            oeLockService.lock(new NodeRef(document.getNodeRef()), true);
+            oeLockService.lock(document.getNodeRef(), true);
         }
-    }
-    
-    @Override
-    public JSONArray getCaseSiteDocumentsJson(String siteShortName) {
-        List<NodeRef> siteDocsRefs = getSiteDocumentsRefs(siteShortName).collect(Collectors.toList());
-        return this.getNodesJSON(siteDocsRefs);
     }
 
     @Override
@@ -151,7 +142,7 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
 
     private List<NodeRef> disableAutoVersion(CaseDocument caseDoc) {
         List<NodeRef> nodesToRestoreAutoVersion = new ArrayList<>();
-        NodeRef mainDocRef = new NodeRef(caseDoc.getMainDocNodeRef());
+        NodeRef mainDocRef = caseDoc.getMainDocNodeRef();
         if (disableAutoVersion(mainDocRef)) {
             nodesToRestoreAutoVersion.add(mainDocRef);
         }
@@ -184,10 +175,10 @@ public class CaseSiteDocumentsServiceImpl extends CaseDocumentsSearchServiceImpl
     }
 
     private void copySiteDocumentBackToCase(CaseDocument siteDocument, CaseDocument originalCaseDocument) {
-        NodeRef originalDocRef = new NodeRef(originalCaseDocument.getMainDocNodeRef());
+        NodeRef originalDocRef = originalCaseDocument.getMainDocNodeRef();
         NodeRef originalDocRecord = originalCaseDocument.nodeRefObject();
 
-        NodeRef siteMainDocRef = new NodeRef(siteDocument.getMainDocNodeRef());
+        NodeRef siteMainDocRef = siteDocument.getMainDocNodeRef();
         if (isDocVersionChanged(originalDocRef, siteMainDocRef)) {
             caseDocumentCopyService.copyDocContentRetainVersionLabel(siteMainDocRef, originalDocRef);
         }

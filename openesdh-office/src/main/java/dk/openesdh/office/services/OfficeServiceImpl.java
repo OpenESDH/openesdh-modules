@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -14,6 +16,7 @@ import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.stereotype.Service;
 
 import dk.openesdh.office.model.OutlookModel;
+import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.services.documents.DocumentCategoryService;
 import dk.openesdh.repo.services.documents.DocumentService;
@@ -32,6 +35,11 @@ public class OfficeServiceImpl implements OfficeService {
     @Autowired
     @Qualifier("DocumentCategoryService")
     private DocumentCategoryService documentCategoryService;
+
+    @PostConstruct
+    public void init() {
+        documentService.addCaseDocumentPropSetter(this::setNecessaryAspects);
+    }
 
     public NodeRef createEmailDocument(String caseId, String name, String bodyText) {
         NodeRef documentFolder = documentService.createCaseDocument(
@@ -62,5 +70,13 @@ public class OfficeServiceImpl implements OfficeService {
     private NodeRef getDocumentCategoryOther() {
         return documentCategoryService.getClassifValueByName(OpenESDHModel.DOCUMENT_CATEGORY_OTHER)
                 .orElseThrow(() -> new WebScriptException("Document type \"other\" not found")).getNodeRef();
+    }
+
+    private void setNecessaryAspects(CaseDocument caseDocument) {
+        Boolean outlookReceived = (Boolean) nodeService.getProperty(caseDocument.getNodeRef(),
+                OutlookModel.PROP_OFFICE_OUTLOOK_RECEIVED);
+        if (Boolean.TRUE.equals(outlookReceived)) {
+            caseDocument.getAspects().put(OutlookModel.FROM_OUTLOOK, outlookReceived);
+        }
     }
 }

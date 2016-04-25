@@ -71,11 +71,6 @@ public class CaseSitesWebScript {
         return WebScriptUtils.jsonResolution(caseSitesService.getCaseSite(shortName));
     }
 
-    @Uri("/api/openesdh/sites/{shortName}/documents")
-    public Resolution getSiteDocuments(@UriVariable("shortName") String shortName) {
-        return WebScriptUtils.jsonResolution(caseSiteDocumentsService.getCaseSiteDocumentsJson(shortName));
-    }
-    
     @Uri("/api/openesdh/case/sites/{shortName}/documents")
     public Resolution getSiteDocumentsWithAttachments(@UriVariable("shortName") String shortName) {
         return WebScriptUtils.jsonResolution(

@@ -42,11 +42,4 @@ public class CaseTemplatesWebScript {
         NodeRef templateRef = new NodeRef(protocol, storeId, id);
         return WebScriptUtils.jsonResolution(caseTemplateService.getCaseTemplateJson(templateRef));
     }
-
-    @Uri("/api/openesdh/case/template/{protocol}/{storeId}/{id}/docs")
-    public Resolution getTemplateDocs(@UriVariable("protocol") String protocol,
-            @UriVariable("storeId") String storeId, @UriVariable("id") String id) {
-        NodeRef templateRef = new NodeRef(protocol, storeId, id);
-        return WebScriptUtils.jsonResolution(caseTemplateService.getCaseTemplateDocuments(templateRef));
-    }
 }
