@@ -31,7 +31,6 @@ import dk.openesdh.repo.services.cases.CaseCreatorServiceRegistry;
 import dk.openesdh.repo.services.cases.CaseService;
 import dk.openesdh.repo.services.documents.CaseDocumentCopyService;
 import dk.openesdh.repo.services.documents.DocumentService;
-import dk.openesdh.repo.services.xsearch.CaseDocumentsSearchServiceImpl;
 import dk.openesdh.repo.utils.JSONArrayCollector;
 
 @Service("CaseTemplateService")
@@ -58,9 +57,6 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
     @Autowired
     @Qualifier("CaseDocumentCopyService")
     private CaseDocumentCopyService caseDocumentCopyService;
-    @Autowired
-    @Qualifier("CaseDocumentsSearchService")
-    private CaseDocumentsSearchServiceImpl caseDocumentsSearchService;
     @Autowired
     @Qualifier("PersonService")
     private PersonService personService;
@@ -153,13 +149,6 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
         });
     }
     
-    @Override
-    public JSONArray getCaseTemplateDocuments(NodeRef templateRef){
-        return getCaseTemplateDocsStream(templateRef)
-                .map(this::getCaseTemplateDocument)
-                .collect(JSONArrayCollector.json());
-    }
-    
     private boolean isCaseTemplateBeingCreated(ChildAssociationRef childAssocRef) {
         NodeRef casesTemplatesFolder = caseTemplatesFolderService.getCaseTemplatesRootFolder();
         return casesTemplatesFolder.equals(childAssocRef.getParentRef());
@@ -167,14 +156,6 @@ public class CaseTemplateServiceImpl implements CaseTemplateService {
 
     private void onCreateCaseTemplate(ChildAssociationRef assoc) {
         onCreateCaseTemplate(assoc.getChildRef());
-    }
-
-    private JSONObject getCaseTemplateDocument(NodeRef nodeRef) {
-        try {
-            return caseDocumentsSearchService.nodeToJSON(nodeRef);
-        } catch (JSONException e) {
-            throw new AlfrescoRuntimeException("Error retrieving case template document", e);
-        }
     }
 
     private void setDefaultOwnerIfNone(NodeRef caseTemplateRef) {

@@ -3,21 +3,11 @@ package dk.openesdh.project.rooms.services;
 import java.util.List;
 
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.json.JSONArray;
 
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.repo.model.CaseDocument;
 
 public interface CaseSiteDocumentsService {
-    /**
-     * Retrieves JSONArray of site documents with same properties as for case
-     * documents list.
-     * 
-     * @param siteShortName
-     * @return
-     */
-    JSONArray getCaseSiteDocumentsJson(String siteShortName);
-
     /**
      * Retrieves site documents with attachments
      * 

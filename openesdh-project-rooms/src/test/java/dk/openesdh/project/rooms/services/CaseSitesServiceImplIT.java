@@ -1,8 +1,5 @@
 package dk.openesdh.project.rooms.services;
 
-import static dk.openesdh.repo.model.CaseDocumentJson.MAIN_DOC_NODE_REF;
-import static dk.openesdh.repo.model.CaseDocumentJson.NODE_REF;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,10 +24,7 @@ import org.alfresco.service.cmr.version.Version;
 import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.cmr.version.VersionType;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,10 +43,12 @@ import dk.openesdh.repo.helper.CaseDocumentTestHelper;
 import dk.openesdh.repo.helper.CaseHelper;
 import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.CaseDocumentAttachment;
+import dk.openesdh.repo.model.CaseFolderItem;
 import dk.openesdh.repo.model.OpenESDHModel;
 import dk.openesdh.repo.model.ResultSet;
 import dk.openesdh.repo.services.TransactionRunner;
 import dk.openesdh.repo.services.cases.CaseService;
+import dk.openesdh.repo.services.documents.CaseDocsFolderExplorerService;
 import dk.openesdh.repo.services.documents.DocumentCategoryServiceImpl;
 import dk.openesdh.repo.services.documents.DocumentService;
 import dk.openesdh.repo.services.documents.DocumentTypeServiceImpl;
@@ -125,6 +121,10 @@ public class CaseSitesServiceImplIT {
     private CommentService commentService;
 
     @Autowired
+    @Qualifier("CaseDocsFolderExplorerService")
+    private CaseDocsFolderExplorerService caseDocsFolderExplorerService;
+
+    @Autowired
     @Qualifier("TransactionRunner")
     private TransactionRunner tr;
 
@@ -190,19 +190,22 @@ public class CaseSitesServiceImplIT {
 
         Assert.assertTrue("Should create site for case", siteService.hasSite(TEST_CASE_NAME1));
 
-        JSONArray siteDocuments = caseSiteDocumentsService.getCaseSiteDocumentsJson(TEST_CASE_NAME1);
-        Assert.assertEquals("Created site should contain 2 documents", 2, siteDocuments.length());
-        JSONObject siteDocument = (JSONObject) siteDocuments.get(0);
+        CaseSite createdSite = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        NodeRef docsFolderRef = new NodeRef(createdSite.getDocumentsFolderRef());
+        List<CaseFolderItem> siteDocuments = caseDocsFolderExplorerService.getCaseDocsFolderContents(docsFolderRef);
+
+        Assert.assertEquals("Created site should contain 2 documents", 2, siteDocuments.size());
+        CaseDocument siteDocument = (CaseDocument) siteDocuments.get(0);
         Assert.assertFalse("Site document SHOULD contain copy of case document",
-                document.getNodeRef().equals(siteDocument.get(NODE_REF)));
-        String siteMainDocument = siteDocument.getString(MAIN_DOC_NODE_REF);
-        Assert.assertTrue("Site document DOES NOT contain main document", StringUtils.isNotEmpty(siteMainDocument));
+                document.getNodeRef().equals(siteDocument.getNodeRef()));
+
+        Assert.assertNotNull("Site document DOES NOT contain main document", siteDocument.getMainDocNodeRef());
 
         Assert.assertTrue("Case document SHOULD be locked after copy to site",
                 oeLockService.isLocked(testDocument));
 
         ResultSet<CaseDocumentAttachment> attachments = documentService
-                .getDocumentVersionAttachments(new NodeRef(siteMainDocument), 0, 1000);
+                .getDocumentVersionAttachments(siteDocument.getMainDocNodeRef(), 0, 1000);
         Assert.assertEquals("Site document SHOULD NOT contain attachments.", 0, attachments.getTotalItems());
     }
 
@@ -213,20 +216,21 @@ public class CaseSitesServiceImplIT {
 
         caseSiteService.createCaseSite(siteWithDocumentAndAttachment());
 
-        JSONArray siteDocuments = caseSiteDocumentsService.getCaseSiteDocumentsJson(TEST_CASE_NAME1);
-        JSONObject siteDocument = (JSONObject) siteDocuments.get(0);
-        String siteMainDocument = siteDocument.getString(MAIN_DOC_NODE_REF);
+        CaseSite createdSite = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        NodeRef docsFolderRef = new NodeRef(createdSite.getDocumentsFolderRef());
+        List<CaseFolderItem> siteDocuments = caseDocsFolderExplorerService.getCaseDocsFolderContents(docsFolderRef);
+
+        CaseDocument siteDocument = (CaseDocument) siteDocuments.get(0);
 
         Assert.assertTrue("Case document should be locked after copy to site",
                 oeLockService.isLocked(testDocument));
 
-        NodeRef siteMainDocRef = new NodeRef(siteMainDocument);
-        Version siteMainDocVersion = versionService.getCurrentVersion(siteMainDocRef);
+        Version siteMainDocVersion = versionService.getCurrentVersion(siteDocument.getMainDocNodeRef());
         Assert.assertEquals("Wrong site document version label retained", "2.0",
                 siteMainDocVersion.getVersionLabel());
 
         ResultSet<CaseDocumentAttachment> attachments = documentService
-                .getDocumentVersionAttachments(siteMainDocRef, 0, 1000);
+                .getDocumentVersionAttachments(siteDocument.getMainDocNodeRef(), 0, 1000);
         Assert.assertEquals("Site document SHOULD contain attachments.", 1, attachments.getTotalItems());
         String siteDocAttachmentRef = attachments.getResultList().get(0).getNodeRef();
         Version siteDocAttachmentVersion = versionService.getCurrentVersion(new NodeRef(siteDocAttachmentRef));
@@ -242,7 +246,7 @@ public class CaseSitesServiceImplIT {
         List<CaseDocument> siteDocs = caseSiteDocumentsService
                 .getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
         CaseDocument siteDoc = siteDocs.get(0);
-        createNewDocVersion(new NodeRef(siteDoc.getMainDocNodeRef()), SITE_DOC_CONTENT, VersionType.MAJOR);
+        createNewDocVersion(siteDoc.getMainDocNodeRef(), SITE_DOC_CONTENT, VersionType.MAJOR);
         createNewDocVersion(siteDoc.getAttachments().get(0).nodeRefObject(), SITE_DOC_ATTACHMENT_CONTENT,
                 VersionType.MINOR);
 
@@ -367,15 +371,15 @@ public class CaseSitesServiceImplIT {
 
     private CaseDocument document() {
         CaseDocument document = new CaseDocument();
-        document.setNodeRef(testDocumentRecFolder.toString());
-        document.setMainDocNodeRef(testDocument.toString());
+        document.setNodeRef(testDocumentRecFolder);
+        document.setMainDocNodeRef(testDocument);
         return document;
     }
 
     private CaseDocument document2() {
         CaseDocument document = new CaseDocument();
-        document.setNodeRef(testDocumentRecFolder2.toString());
-        document.setMainDocNodeRef(testDocument2.toString());
+        document.setNodeRef(testDocumentRecFolder2);
+        document.setMainDocNodeRef(testDocument2);
         return document;
     }
 

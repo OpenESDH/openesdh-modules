@@ -24,6 +24,4 @@ public interface CaseTemplateService {
 
     JSONObject getCaseTemplateJson(NodeRef templateRef);
 
-    JSONArray getCaseTemplateDocuments(NodeRef templateRef);
-
 }
