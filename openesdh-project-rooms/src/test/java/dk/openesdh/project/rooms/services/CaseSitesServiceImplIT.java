@@ -41,6 +41,7 @@ import com.tradeshift.test.remote.RemoteTestRunner;
 import dk.openesdh.project.rooms.model.CaseSite;
 import dk.openesdh.repo.helper.CaseDocumentTestHelper;
 import dk.openesdh.repo.helper.CaseHelper;
+import dk.openesdh.repo.model.CaseDocsFolder;
 import dk.openesdh.repo.model.CaseDocument;
 import dk.openesdh.repo.model.CaseDocumentAttachment;
 import dk.openesdh.repo.model.CaseFolderItem;
@@ -140,14 +141,25 @@ public class CaseSitesServiceImplIT {
     private static final String TEST_COMMENT_TITLE = "Test comment";
     private static final String TEST_COMMENT = "This is a test comment";
 
+    private static final String TEST_DOC_FOLDER1 = "Test doc folder1";
+    private static final String TEST_DOCUMENT_NAME3 = "TestDocument3";
+    private static final String TEST_DOCUMENT_FILE_NAME3 = TEST_DOCUMENT_NAME3 + ".txt";
+
+    private static final String NEW_SITE_DOC_FOLDER_NAME = "New site doc folder";
+
     private NodeRef testFolder;
     private NodeRef testCase1;
+    private NodeRef testCase1DocumentsRootFolder;
     private NodeRef testDocument;
     private String testCaseId;
     private NodeRef testDocumentRecFolder;
     private NodeRef testDocumentAttachment;
     private NodeRef testDocument2;
     private NodeRef testDocumentRecFolder2;
+
+    private NodeRef docFolder1;
+    private NodeRef testDocument3;
+    private NodeRef testDocumentRecFolder3;
 
     @Before
     public void setUp() throws Exception {
@@ -161,6 +173,11 @@ public class CaseSitesServiceImplIT {
                 testDocumentRecFolder);
         testDocument2 = docTestHelper.createCaseDocument(TEST_DOCUMENT_FILE_NAME2, testCase1);
         testDocumentRecFolder2 = nodeService.getPrimaryParent(testDocument2).getParentRef();
+
+        testCase1DocumentsRootFolder = caseService.getDocumentsFolder(testCase1);
+        docFolder1 = docTestHelper.createCaseDocFolder(TEST_DOC_FOLDER1, testCase1DocumentsRootFolder);
+        testDocument3 = docTestHelper.createCaseDocumentInFolder(TEST_DOCUMENT_FILE_NAME3, docFolder1);
+        testDocumentRecFolder3 = nodeService.getPrimaryParent(testDocument3).getParentRef();
     }
 
     @After
@@ -185,13 +202,13 @@ public class CaseSitesServiceImplIT {
     public void shouldCreateSiteCopyCaseDocumentNoAttachmentsAndLock() throws JSONException {
 
         CaseSite site = siteWithDocuments();
-        CaseDocument document = site.getSiteDocuments().get(0);
+        CaseFolderItem document = site.getSiteDocuments().get(0);
         caseSiteService.createCaseSite(site);
 
         Assert.assertTrue("Should create site for case", siteService.hasSite(TEST_CASE_NAME1));
 
         CaseSite createdSite = caseSiteService.getCaseSite(TEST_CASE_NAME1);
-        NodeRef docsFolderRef = new NodeRef(createdSite.getDocumentsFolderRef());
+        NodeRef docsFolderRef = createdSite.getDocumentsFolderRef();
         List<CaseFolderItem> siteDocuments = caseDocsFolderExplorerService.getCaseDocsFolderContents(docsFolderRef);
 
         Assert.assertEquals("Created site should contain 2 documents", 2, siteDocuments.size());
@@ -217,7 +234,7 @@ public class CaseSitesServiceImplIT {
         caseSiteService.createCaseSite(siteWithDocumentAndAttachment());
 
         CaseSite createdSite = caseSiteService.getCaseSite(TEST_CASE_NAME1);
-        NodeRef docsFolderRef = new NodeRef(createdSite.getDocumentsFolderRef());
+        NodeRef docsFolderRef = createdSite.getDocumentsFolderRef();
         List<CaseFolderItem> siteDocuments = caseDocsFolderExplorerService.getCaseDocsFolderContents(docsFolderRef);
 
         CaseDocument siteDocument = (CaseDocument) siteDocuments.get(0);
@@ -239,18 +256,44 @@ public class CaseSitesServiceImplIT {
     }
 
     @Test
+    public void shouldCreateSiteCopyFolderWithCaseDocRetainVersionLabels() throws JSONException {
+        createNewDocVersion(testDocument3, "some content for doc3", VersionType.MAJOR);
+        caseSiteService.createCaseSite(siteWithDocFolderAndDocument());
+
+        Assert.assertTrue("Case document should be locked after copy to site",
+                oeLockService.isLocked(testDocument3));
+
+        CaseSite createdSite = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        NodeRef docsFolderRef = createdSite.getDocumentsFolderRef();
+        List<CaseFolderItem> siteDocuments = caseDocsFolderExplorerService
+                .getCaseDocsFoldersHierarchy(docsFolderRef);
+
+        CaseFolderItem item = siteDocuments.get(0);
+        Assert.assertTrue("Site should contain docs folder copy", item instanceof CaseDocsFolder);
+
+        CaseDocsFolder folder = (CaseDocsFolder) item;
+        Assert.assertEquals("Wrong number of copied case documents in the docs folder", 1,
+                folder.getChildren().size());
+
+        CaseDocument siteDocument = (CaseDocument) folder.getChildren().get(0);
+
+        Version siteMainDocVersion = versionService.getCurrentVersion(siteDocument.getMainDocNodeRef());
+        Assert.assertEquals("Wrong site document version label retained", "2.0",
+                siteMainDocVersion.getVersionLabel());
+    }
+
+    @Test
     public void shouldCloseSiteCopySiteDocumentsBackToCase() {
         caseSiteService.createCaseSite(siteWithDocumentsAndAttachment());
         final String SITE_DOC_CONTENT = "Site doc content";
         final String SITE_DOC_ATTACHMENT_CONTENT = "Site doc attachment content";
-        List<CaseDocument> siteDocs = caseSiteDocumentsService
-                .getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
-        CaseDocument siteDoc = siteDocs.get(0);
+        List<CaseFolderItem> siteDocs = caseSiteDocumentsService.getCaseSiteDocFolderItems(TEST_CASE_NAME1);
+        CaseDocument siteDoc = (CaseDocument) siteDocs.get(0);
         createNewDocVersion(siteDoc.getMainDocNodeRef(), SITE_DOC_CONTENT, VersionType.MAJOR);
         createNewDocVersion(siteDoc.getAttachments().get(0).nodeRefObject(), SITE_DOC_ATTACHMENT_CONTENT,
                 VersionType.MINOR);
 
-        commentService.createComment(siteDoc.nodeRefObject(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
+        commentService.createComment(siteDoc.getNodeRef(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
 
         CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
         site.setSiteDocuments(siteDocs);
@@ -291,11 +334,11 @@ public class CaseSitesServiceImplIT {
         });
 
         CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
-        List<CaseDocument> siteDocs = caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(TEST_CASE_NAME1);
+        List<CaseFolderItem> siteDocs = caseSiteDocumentsService.getCaseSiteDocFolderItems(TEST_CASE_NAME1);
         site.setSiteDocuments(siteDocs);
 
         tr.runInTransaction(() -> {
-            commentService.createComment(siteDocs.get(0).nodeRefObject(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
+            commentService.createComment(siteDocs.get(0).getNodeRef(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
             return null;
         });
 
@@ -317,7 +360,7 @@ public class CaseSitesServiceImplIT {
                 newSiteDocInCase.isPresent());
 
         List<NodeRef> commentRefs = commentService
-                .listComments(newSiteDocInCase.get().nodeRefObject(), new PagingRequest(100)).getPage();
+                .listComments(newSiteDocInCase.get().getNodeRef(), new PagingRequest(100)).getPage();
 
         Assert.assertEquals("Project room document comments should be moved to case doc.", 1, commentRefs.size());
 
@@ -325,16 +368,122 @@ public class CaseSitesServiceImplIT {
         Assert.assertEquals("Wrong case document comment", TEST_COMMENT, reader.getContentString());
     }
 
+    @Test
+    public void shouldCloseSiteCopyDocFolderAndDocumentBackToCase() {
+        caseSiteService.createCaseSite(siteWithDocFolderAndDocument());
+
+        List<CaseFolderItem> siteDocs = caseSiteDocumentsService.getCaseSiteDocFolderItems(TEST_CASE_NAME1);
+        CaseDocsFolder folder = (CaseDocsFolder) siteDocs.get(0);
+        CaseDocument siteDoc = (CaseDocument) folder.getChildren().get(0);
+        final String SITE_DOC_CONTENT = "Site doc content";
+        createNewDocVersion(siteDoc.getMainDocNodeRef(), SITE_DOC_CONTENT, VersionType.MAJOR);
+
+        commentService.createComment(siteDoc.getNodeRef(), TEST_COMMENT_TITLE, TEST_COMMENT, false);
+
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        site.setSiteDocuments(siteDocs);
+
+        caseSiteService.closeCaseSite(site);
+
+        Assert.assertFalse("The site should be deleted when project room is closed",
+                siteService.hasSite(TEST_CASE_NAME1));
+
+        Version caseDocVersion = versionService.getCurrentVersion(testDocument3);
+        Assert.assertEquals("Wrong case document version after copy back to case", "2.0",
+                caseDocVersion.getVersionLabel());
+        String docResultContent = contentService.getReader(testDocument3, ContentModel.PROP_CONTENT)
+                .getContentString();
+        Assert.assertEquals("Wrong case doc content after copy back to case", SITE_DOC_CONTENT, docResultContent);
+
+        List<NodeRef> commentRefs = commentService.listComments(testDocumentRecFolder3, new PagingRequest(100))
+                .getPage();
+        Assert.assertEquals("Project room document comments should be moved to case doc.", 1, commentRefs.size());
+        ContentReader reader = contentService.getReader(commentRefs.get(0), ContentModel.PROP_CONTENT);
+        Assert.assertEquals("Wrong case document comment", TEST_COMMENT, reader.getContentString());
+    }
+
+    @Test
+    public void shouldCloseSiteCopyNewDocFolderWithDocumentBackToCase() {
+        caseSiteService.createCaseSite(site());
+        tr.runInTransaction(() -> {
+            createNewSiteDocFolderWithDocument();
+            return null;
+        });
+
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        List<CaseFolderItem> siteDocs = caseSiteDocumentsService.getCaseSiteDocFolderItems(TEST_CASE_NAME1);
+        site.setSiteDocuments(siteDocs);
+
+        CaseDocsFolder siteDocFolder = (CaseDocsFolder) siteDocs.get(0);
+        CaseDocument siteDocument = (CaseDocument) siteDocFolder.getChildren().get(0);
+        final String SITE_DOC_CONTENT = "Site doc content";
+        createNewDocVersion(siteDocument.getMainDocNodeRef(), SITE_DOC_CONTENT, VersionType.MAJOR);
+
+        tr.runInTransaction(() -> {
+            CaseDocsFolder folder = (CaseDocsFolder) siteDocs.get(0);
+            commentService.createComment(folder.getChildren().get(0).getNodeRef(), TEST_COMMENT_TITLE, TEST_COMMENT,
+                    false);
+            return null;
+        });
+
+        List<CaseFolderItem> caseItemsBeforeSiteClosed = caseDocsFolderExplorerService
+                .getCaseDocsFoldersHierarchy(testCase1DocumentsRootFolder);
+
+        Optional<CaseFolderItem> newSiteDocFolderInCase = caseItemsBeforeSiteClosed.stream()
+                .filter(doc -> NEW_SITE_DOC_FOLDER_NAME.equals(doc.getTitle()))
+                .findAny();
+
+        Assert.assertFalse("The case shouldn't contain site new doc folder before site is closed",
+                newSiteDocFolderInCase.isPresent());
+        
+        caseSiteService.closeCaseSite(site);
+
+        List<CaseFolderItem> caseItemsAfterSiteClosed = caseDocsFolderExplorerService
+                .getCaseDocsFoldersHierarchy(testCase1DocumentsRootFolder);
+        
+        newSiteDocFolderInCase = caseItemsAfterSiteClosed.stream()
+                .filter(doc -> NEW_SITE_DOC_FOLDER_NAME.equals(doc.getTitle()))
+                .findAny();
+        Assert.assertTrue("The case should contain newly created site doc folder after site is closed",
+                newSiteDocFolderInCase.isPresent());
+
+        CaseDocsFolder folder = (CaseDocsFolder) newSiteDocFolderInCase.get();
+        Assert.assertFalse("The newly created and copied to case site doc folder should contain document",
+                folder.getChildren().isEmpty());
+
+        CaseDocument document = (CaseDocument) folder.getChildren().get(0);
+
+        Version caseDocVersion = versionService.getCurrentVersion(document.getMainDocNodeRef());
+        Assert.assertEquals("Wrong version of the case document created from new site doc in new folder", "2.0",
+                caseDocVersion.getVersionLabel());
+
+        List<NodeRef> commentRefs = commentService.listComments(document.getNodeRef(), new PagingRequest(100))
+                .getPage();
+        Assert.assertEquals("Project room document comments should be moved to case doc.", 1, commentRefs.size());
+        ContentReader reader = contentService.getReader(commentRefs.get(0), ContentModel.PROP_CONTENT);
+        Assert.assertEquals("Wrong case document comment", TEST_COMMENT, reader.getContentString());
+    }
+
     private void createNewSiteDocument() {
         CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
-        NodeRef siteDocsFolder = new NodeRef(site.getDocumentsFolderRef());
+        createNewSiteDocument(site.getDocumentsFolderRef());
+    }
+
+    private void createNewSiteDocFolderWithDocument() {
+        CaseSite site = caseSiteService.getCaseSite(TEST_CASE_NAME1);
+        NodeRef siteDocFolderRef = docTestHelper.createCaseDocFolder(NEW_SITE_DOC_FOLDER_NAME,
+                site.getDocumentsFolderRef());
+        createNewSiteDocument(siteDocFolderRef);
+    }
+
+    private void createNewSiteDocument(NodeRef targetFolder) {
         Map<QName, Serializable> props = new HashMap<>();
         props.put(ContentModel.PROP_NAME, NEW_SITE_DOC_NAME);
         props.put(OpenESDHModel.PROP_DOC_TYPE,
                 documentTypeService.getClassifValues().stream().skip(1).findFirst().get().getNodeRef());
         props.put(OpenESDHModel.PROP_DOC_CATEGORY,
                 documentCategoryService.getClassifValues().stream().skip(1).findFirst().get().getNodeRef());
-        NodeRef siteDocRef = nodeService.createNode(siteDocsFolder, ContentModel.ASSOC_CONTAINS,
+        NodeRef siteDocRef = nodeService.createNode(targetFolder, ContentModel.ASSOC_CONTAINS,
                 QName.createQName("newSiteDoc"), ContentModel.TYPE_CONTENT, props).getChildRef();
         ContentWriter writer = contentService.getWriter(siteDocRef, ContentModel.PROP_CONTENT, true);
         writer.setMimetype("text");
@@ -369,6 +518,24 @@ public class CaseSitesServiceImplIT {
         return site;
     }
 
+    private CaseSite siteWithDocFolderAndDocument() {
+        CaseSite site = site();
+        site.getSiteDocuments().add(docFolderWithDocument());
+        return site;
+    }
+
+    private CaseDocsFolder docFolder() {
+        CaseDocsFolder folder = new CaseDocsFolder();
+        folder.setNodeRef(docFolder1);
+        return folder;
+    }
+
+    private CaseDocsFolder docFolderWithDocument() {
+        CaseDocsFolder folder = docFolder();
+        folder.getChildren().add(document3());
+        return folder;
+    }
+
     private CaseDocument document() {
         CaseDocument document = new CaseDocument();
         document.setNodeRef(testDocumentRecFolder);
@@ -380,6 +547,13 @@ public class CaseSitesServiceImplIT {
         CaseDocument document = new CaseDocument();
         document.setNodeRef(testDocumentRecFolder2);
         document.setMainDocNodeRef(testDocument2);
+        return document;
+    }
+
+    private CaseDocument document3() {
+        CaseDocument document = new CaseDocument();
+        document.setNodeRef(testDocumentRecFolder3);
+        document.setMainDocNodeRef(testDocument3);
         return document;
     }
 

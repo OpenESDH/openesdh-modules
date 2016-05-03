@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.PersonService.PersonInfo;
 import org.alfresco.service.cmr.site.SiteVisibility;
 
-import dk.openesdh.repo.model.CaseDocument;
+import dk.openesdh.repo.model.CaseFolderItem;
 
 public class CaseSite {
 
@@ -18,12 +19,12 @@ public class CaseSite {
     private String description;
     private SiteVisibility visibility;
     private String nodeRef;
-    private List<SiteMember> siteMembers = new ArrayList<CaseSite.SiteMember>();
-    private List<SiteParty> siteParties = new ArrayList<CaseSite.SiteParty>();
-    private List<CaseDocument> siteDocuments = new ArrayList<>();
+    private List<SiteMember> siteMembers = new ArrayList<>();
+    private List<SiteParty> siteParties = new ArrayList<>();
+    private List<CaseFolderItem> siteDocuments = new ArrayList<>();
     private Date createdDate;
     private Date lastModifiedDate;
-    private String documentsFolderRef;
+    private NodeRef documentsFolderRef;
 
     private PersonInfo creator;
 
@@ -122,14 +123,6 @@ public class CaseSite {
         this.creator = creator;
     }
 
-    public List<CaseDocument> getSiteDocuments() {
-        return siteDocuments;
-    }
-
-    public void setSiteDocuments(List<CaseDocument> siteDocuments) {
-        this.siteDocuments = siteDocuments;
-    }
-
     public Date getCreatedDate() {
         return createdDate;
     }
@@ -146,12 +139,20 @@ public class CaseSite {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public String getDocumentsFolderRef() {
+    public NodeRef getDocumentsFolderRef() {
         return documentsFolderRef;
     }
 
-    public void setDocumentsFolderRef(String documentsFolderRef) {
+    public void setDocumentsFolderRef(NodeRef documentsFolderRef) {
         this.documentsFolderRef = documentsFolderRef;
+    }
+
+    public List<CaseFolderItem> getSiteDocuments() {
+        return siteDocuments;
+    }
+
+    public void setSiteDocuments(List<CaseFolderItem> siteDocuments) {
+        this.siteDocuments = siteDocuments;
     }
 
     public static class SiteMember {

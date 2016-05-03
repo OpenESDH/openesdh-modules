@@ -72,9 +72,9 @@ public class CaseSitesWebScript {
     }
 
     @Uri("/api/openesdh/case/sites/{shortName}/documents")
-    public Resolution getSiteDocumentsWithAttachments(@UriVariable("shortName") String shortName) {
+    public Resolution getSiteDocFolderItems(@UriVariable("shortName") String shortName) {
         return WebScriptUtils.jsonResolution(
-                caseSiteDocumentsService.getCaseSiteDocumentsWithAttachments(shortName));
+                caseSiteDocumentsService.getCaseSiteDocFolderItems(shortName));
     }
 
     @Uri(value = "/api/openesdh/case/sites", method = HttpMethod.POST)
