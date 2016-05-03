@@ -368,8 +368,7 @@ public class CaseSitesServiceImpl implements CaseSitesService {
         PersonInfo siteCreator = personService.getPerson(personService.getPerson(siteCreatorUserName));
         site.setCreator(siteCreator);
 
-        site.setDocumentsFolderRef(
-                siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY).toString());
+        site.setDocumentsFolderRef(siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY));
 
         return site;
     }

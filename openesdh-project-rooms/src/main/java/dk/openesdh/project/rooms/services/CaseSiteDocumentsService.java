@@ -5,17 +5,9 @@ import java.util.List;
 import org.alfresco.service.cmr.repository.NodeRef;
 
 import dk.openesdh.project.rooms.model.CaseSite;
-import dk.openesdh.repo.model.CaseDocument;
+import dk.openesdh.repo.model.CaseFolderItem;
 
 public interface CaseSiteDocumentsService {
-    /**
-     * Retrieves site documents with attachments
-     * 
-     * @param siteShortName
-     * @return List of documents with attachments
-     */
-    List<CaseDocument> getCaseSiteDocumentsWithAttachments(String siteShortName);
-
     /**
      * Copies provided site documents back to case and unlocks case documents.
      * 
@@ -24,4 +16,6 @@ public interface CaseSiteDocumentsService {
     void copySiteDocumentsBackToCase(CaseSite site);
 
     void copySiteDocuments(CaseSite site, NodeRef targetFolder) throws Exception;
+
+    List<CaseFolderItem> getCaseSiteDocFolderItems(String siteShortName);
 }
