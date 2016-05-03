@@ -1,6 +1,6 @@
 package dk.openesdh.project.rooms.model;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,9 +19,9 @@ public class CaseSite {
     private String description;
     private SiteVisibility visibility;
     private String nodeRef;
-    private List<SiteMember> siteMembers = Collections.emptyList();
-    private List<SiteParty> siteParties = Collections.emptyList();
-    private List<CaseFolderItem> siteDocuments = Collections.emptyList();
+    private List<SiteMember> siteMembers = new ArrayList<>();
+    private List<SiteParty> siteParties = new ArrayList<>();
+    private List<CaseFolderItem> siteDocuments = new ArrayList<>();
     private Date createdDate;
     private Date lastModifiedDate;
     private NodeRef documentsFolderRef;
