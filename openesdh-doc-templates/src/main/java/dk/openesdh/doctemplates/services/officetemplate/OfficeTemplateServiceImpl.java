@@ -379,7 +379,7 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
     }
 
     private void sendMergedToEmail(String caseId, OfficeTemplateMerged document, String subject, String message) {
-        NodeRef caseDocNodeRef = saveMergedToCase(caseId, document);
+        NodeRef caseDocNodeRef = documentService.getMainDocument(saveMergedToCase(caseId, document));
         documentEmailService.send(caseId,
                 Arrays.asList(document.getReceiver()),
                 subject,
