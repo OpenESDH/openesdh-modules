@@ -27,12 +27,15 @@ public class OfficeTemplateFillToEmailWebScript {
     @Qualifier("OfficeTemplateService")
     private OfficeTemplateService officeTemplateService;
 
-    @Uri(value = "/api/openesdh/template/{store_type}/{store_id}/{node_id}/case/{caseId}/fillToEmail", method = HttpMethod.POST, defaultFormat = "json")
+    @Uri(value = "/api/openesdh/template/{store_type}/{store_id}/{node_id}/case/{caseId}/folder/{folderStoreType}/{folderStoreId}/{folderNodeId}/fillToEmail", method = HttpMethod.POST, defaultFormat = "json")
     public void fillToEmail(
             @UriVariable final String store_type,
             @UriVariable final String store_id,
             @UriVariable final String node_id,
             @UriVariable final String caseId,
+            @UriVariable final String folderStoreType,
+            @UriVariable final String folderStoreId,
+            @UriVariable final String folderNodeId,
             WebScriptRequest req, WebScriptResponse res
     ) throws Exception {
         JSONObject json = WebScriptUtils.readJson(req);
@@ -43,6 +46,7 @@ public class OfficeTemplateFillToEmailWebScript {
         JSONObject fieldData = (JSONObject) json.get("fieldData");
         String subject = (String) fieldData.get("email.subject");
         String message = (String) fieldData.get("email.message");
-        officeTemplateService.sendToEmail(caseId, merged, subject, message);
+        NodeRef targetFolder = new NodeRef(folderStoreType, folderStoreId, folderNodeId);
+        officeTemplateService.sendToEmail(caseId, targetFolder, merged, subject, message);
     }
 }

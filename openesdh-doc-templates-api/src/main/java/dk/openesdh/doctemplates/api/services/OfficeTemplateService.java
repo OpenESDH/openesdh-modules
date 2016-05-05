@@ -82,15 +82,6 @@ public interface OfficeTemplateService {
     OfficeTemplateMerged renderTemplate(OfficeTemplate template, String caseId, NodeRef receiver, Map<String, Serializable> model) throws Exception;
 
     /**
-     * saves filled templates to case
-     *
-     * @param caseId
-     * @param merged
-     * @return
-     */
-    void saveToCase(String caseId, List<OfficeTemplateMerged> merged);
-
-    /**
      * sends filled templates to recipients by email
      *
      * @param caseId
@@ -98,7 +89,8 @@ public interface OfficeTemplateService {
      * @param subject
      * @param message
      */
-    void sendToEmail(String caseId, List<OfficeTemplateMerged> merged, String subject, String message);
+    void sendToEmail(String caseId, NodeRef targetFolder, List<OfficeTemplateMerged> merged, String subject,
+            String message);
 
     /**
      *
@@ -109,4 +101,13 @@ public interface OfficeTemplateService {
      * @throws java.io.IOException
      */
     List<OfficeTemplateMerged> getMergedTemplates(NodeRef templateNodeRef, String caseId, JSONObject json) throws IOException;
+
+    /**
+     * saves filled templates to documents folder
+     *
+     * @param caseId
+     * @param merged
+     * @return
+     */
+    void saveToFolder(NodeRef targetFolderRef, List<OfficeTemplateMerged> merged);
 }
