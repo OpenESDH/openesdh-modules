@@ -19,25 +19,29 @@ import dk.openesdh.doctemplates.api.services.OfficeTemplateService;
 import dk.openesdh.repo.webscripts.utils.WebScriptUtils;
 
 @Component
-@WebScript(description = "Fill the specified office template, and save it to case", families = {"OpenESDH Office Template"})
-public class OfficeTemplateFillToCaseWebScript {
+@WebScript(description = "Fill the specified office template, and save it to case folder", families = {
+        "OpenESDH Office Template" })
+public class OfficeTemplateFillToCaseFolderWebScript {
 
     @Autowired
     @Qualifier("OfficeTemplateService")
     private OfficeTemplateService officeTemplateService;
 
-    @Uri(value = "/api/openesdh/template/{store_type}/{store_id}/{node_id}/case/{caseId}/fillToCase", method = HttpMethod.POST, defaultFormat = "json")
-    public void fillToCase(
+    @Uri(value = "/api/openesdh/template/{store_type}/{store_id}/{node_id}/case/{caseId}/folder/{folderStoreType}/{folderStoreId}/{folderNodeId}", method = HttpMethod.POST, defaultFormat = "json")
+    public void fillToCaseFolder(
             @UriVariable final String store_type,
             @UriVariable final String store_id,
             @UriVariable final String node_id,
             @UriVariable final String caseId,
+            @UriVariable final String folderStoreType,
+            @UriVariable final String folderStoreId,
+            @UriVariable final String folderNodeId,
             WebScriptRequest req, WebScriptResponse res
     ) throws Exception {
         List<OfficeTemplateMerged> merged = officeTemplateService.getMergedTemplates(
                 new NodeRef(store_type, store_id, node_id),
                 caseId,
                 WebScriptUtils.readJson(req));
-        officeTemplateService.saveToCase(caseId, merged);
+        officeTemplateService.saveToFolder(new NodeRef(folderStoreType, folderStoreId, folderNodeId), merged);
     }
 }

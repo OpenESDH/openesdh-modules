@@ -356,13 +356,13 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
     }
 
     @Override
-    public void saveToCase(String caseId, List<OfficeTemplateMerged> merged) {
-        merged.forEach(document -> saveMergedToCase(caseId, document));
+    public void saveToFolder(NodeRef targetFolderRef, List<OfficeTemplateMerged> merged){
+        merged.forEach(document -> saveMergedToFolder(targetFolderRef, document));
     }
-
-    private NodeRef saveMergedToCase(String caseId, OfficeTemplateMerged document) {
-        return documentService.createCaseDocument(
-                caseId,
+    
+    private NodeRef saveMergedToFolder(NodeRef targetFolderRef, OfficeTemplateMerged document) {
+        return documentService.createCaseDocumentInFolder(
+                targetFolderRef,
                 document.getFileName(),
                 document.getFileName(),
                 document.getDocumentType(),
@@ -374,12 +374,13 @@ public class OfficeTemplateServiceImpl implements OfficeTemplateService {
     }
 
     @Override
-    public void sendToEmail(String caseId, List<OfficeTemplateMerged> merged, String subject, String message) {
-        merged.forEach(document -> sendMergedToEmail(caseId, document, subject, message));
+    public void sendToEmail(String caseId, NodeRef targetFolder, List<OfficeTemplateMerged> merged, String subject,
+            String message) {
+        merged.forEach(document -> sendMergedToEmail(caseId, targetFolder, document, subject, message));
     }
 
-    private void sendMergedToEmail(String caseId, OfficeTemplateMerged document, String subject, String message) {
-        NodeRef caseDocNodeRef = documentService.getMainDocument(saveMergedToCase(caseId, document));
+    private void sendMergedToEmail(String caseId, NodeRef targetFolder, OfficeTemplateMerged document, String subject, String message) {
+        NodeRef caseDocNodeRef = documentService.getMainDocument(saveMergedToFolder(targetFolder, document));
         documentEmailService.send(caseId,
                 Arrays.asList(document.getReceiver()),
                 subject,
