@@ -1,10 +1,6 @@
 package dk.openesdh.googledocs.services;
 
-import dk.openesdh.googledocs.model.OpenEsdhGoogleDocsModel;
-
-import static dk.openesdh.repo.services.audit.AuditEntryHandler.ACTION;
 import static dk.openesdh.repo.services.audit.AuditEntryHandler.REC_TYPE.DOCUMENT;
-import static dk.openesdh.repo.services.audit.AuditEntryHandler.TYPE;
 import static dk.openesdh.repo.services.audit.AuditUtils.getTitle;
 import static dk.openesdh.repo.services.audit.entryhandlers.TransactionPathAuditEntryHandler.TRANSACTION_ACTION;
 import static dk.openesdh.repo.services.audit.entryhandlers.TransactionPathAuditEntryHandler.TRANSACTION_ACTION_CREATE_VERSION;
@@ -20,11 +16,11 @@ import javax.annotation.PostConstruct;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.namespace.QName;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 
+import dk.openesdh.googledocs.model.OpenEsdhGoogleDocsModel;
+import dk.openesdh.repo.services.audit.AuditEntry;
 import dk.openesdh.repo.services.audit.AuditEntryHandler;
 import dk.openesdh.repo.services.audit.AuditSearchService;
 
@@ -53,17 +49,18 @@ public class GoogleDocAuditEntryHandler extends AuditEntryHandler {
     }
 
     @Override
-    public Optional<JSONObject> handleEntry(String user, long time, Map<String, Serializable> values) {
+    public Optional<AuditEntry> handleEntry(String user, long time, Map<String, Serializable> values) {
         String oldVersion = (String) getFromPropertyMap(
                 values, TRANSACTION_PROPERTIES_FROM, ContentModel.PROP_VERSION_LABEL);
         String newVersion = (String) getFromPropertyMap(
                 values, TRANSACTION_PROPERTIES_TO, ContentModel.PROP_VERSION_LABEL);
-        JSONObject auditEntry = createNewAuditEntry(user, time);
-        auditEntry.put(ACTION, I18NUtil.getMessage("auditlog.label.google.doc.edit",
-                getTitle(values),
-                oldVersion,
-                newVersion));
-        auditEntry.put(TYPE, getTypeMessage(DOCUMENT));
+
+        AuditEntry auditEntry = new AuditEntry(user, time);
+        auditEntry.setType(DOCUMENT);
+        auditEntry.setAction("GOOGLE.DOCS.auditlog.EDIT");
+        auditEntry.addData("title", getTitle(values));
+        auditEntry.addData("oldVersion", oldVersion);
+        auditEntry.addData("newVersion", newVersion);
         return Optional.of(auditEntry);
     }
 

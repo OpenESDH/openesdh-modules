@@ -12,12 +12,11 @@ import java.util.regex.Matcher;
 
 import javax.annotation.PostConstruct;
 
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 
 import dk.openesdh.project.rooms.services.CaseSitesService;
+import dk.openesdh.repo.services.audit.AuditEntry;
 import dk.openesdh.repo.services.audit.AuditEntryHandler;
 import dk.openesdh.repo.services.audit.AuditSearchService;
 
@@ -38,7 +37,7 @@ public class CaseSitesAuditEntryHandlers extends AuditEntryHandler {
     }
 
     @Override
-    public Optional<JSONObject> handleEntry(String user, long time, Map<String, Serializable> values) {
+    public Optional<AuditEntry> handleEntry(String user, long time, Map<String, Serializable> values) {
         String path = (String) values.get(TRANSACTION_PATH);
         Matcher matcher = siteShortNameMatcher(path);
         if (!matcher.find()) {
@@ -47,17 +46,16 @@ public class CaseSitesAuditEntryHandlers extends AuditEntryHandler {
         String siteShortName = matcher.group(1);
         String transactionAction = (String) values.get(TRANSACTION_ACTION);
 
-        JSONObject auditEntry = createNewAuditEntry(user, time);
-        auditEntry.put("type", I18NUtil.getMessage("auditlog.label.type.site"));
-
+        AuditEntry auditEntry = new AuditEntry(user, time);
+        auditEntry.setType("PROJECT_ROOM.auditlog.TYPE.SITE");
+        auditEntry.addData("siteShortName", siteShortName);
         if (TRANSACTION_ACTION_CREATE.equals(transactionAction)) {
-            auditEntry.put("action", I18NUtil.getMessage("auditlog.label.site.created", siteShortName));
+            auditEntry.setAction("PROJECT_ROOM.auditlog.SITE_CREATED");
             return Optional.of(auditEntry);
         } else if (TRANSACTION_ACTION_DELETE.equals(transactionAction)) {
-            auditEntry.put("action", I18NUtil.getMessage("auditlog.label.site.deleted", siteShortName));
+            auditEntry.setAction("PROJECT_ROOM.auditlog.SITE_DELETED");
             return Optional.of(auditEntry);
         }
-
         return Optional.empty();
     }
 
