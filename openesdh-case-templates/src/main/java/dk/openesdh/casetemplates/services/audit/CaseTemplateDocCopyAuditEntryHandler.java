@@ -16,15 +16,15 @@ import javax.annotation.PostConstruct;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.namespace.QName;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 
 import dk.openesdh.casetemplates.services.CaseTemplatesFolderService;
 import dk.openesdh.repo.model.OpenESDHModel;
+import dk.openesdh.repo.services.audit.AuditEntry;
 import dk.openesdh.repo.services.audit.AuditEntryHandler;
 import dk.openesdh.repo.services.audit.AuditSearchService;
+import dk.openesdh.repo.services.audit.AuditUtils;
 
 @Component
 public class CaseTemplateDocCopyAuditEntryHandler extends AuditEntryHandler {
@@ -49,8 +49,9 @@ public class CaseTemplateDocCopyAuditEntryHandler extends AuditEntryHandler {
     }
 
     @Override
-    public Optional<JSONObject> handleEntry(String user, long time, Map<String, Serializable> values) {
-        JSONObject auditEntry = createNewAuditEntry(user, time);
+    public Optional<AuditEntry> handleEntry(String user, long time, Map<String, Serializable> values) {
+        AuditEntry auditEntry = new AuditEntry(user, time);
+
         String type = (String) values.get(TRANSACTION_TYPE);
         Set<QName> aspectsAdd = (Set<QName>) values.get(TRANSACTION_ASPECT_ADD);
         Map<QName, Serializable> properties = (Map<QName, Serializable>) values.get(TRANSACTION_PROPERTIES_ADD);
@@ -61,16 +62,18 @@ public class CaseTemplateDocCopyAuditEntryHandler extends AuditEntryHandler {
             // and one for the main file
         }
         if (type.startsWith(DOC_TYPE_PREFIX)) {
-            Optional<String> title = getLocalizedProperty(properties, ContentModel.PROP_TITLE);
+            Optional<String> title = AuditUtils.getLocalizedProperty(properties, ContentModel.PROP_TITLE);
             if (!title.isPresent()) {
                 return Optional.empty();
             }
             if (type.equals(DOC_TYPE_SIMPLE)) {
-                auditEntry.put(ACTION, I18NUtil.getMessage("auditlog.label.document.added", title.get()));
-                auditEntry.put(TYPE, getTypeMessage(DOCUMENT));
+                auditEntry.setType(DOCUMENT);
+                auditEntry.setAction("auditlog.label.document.added");
+                auditEntry.addData("title", title.get());
             } else {
-                auditEntry.put(ACTION, I18NUtil.getMessage("auditlog.label.attachment.added", title.get()));
-                auditEntry.put(TYPE, getTypeMessage(ATTACHMENT));
+                auditEntry.setType(ATTACHMENT);
+                auditEntry.setAction("auditlog.label.attachment.added");
+                auditEntry.addData("title", title.get());
             }
         } else {
             return Optional.empty();

@@ -12,7 +12,6 @@
     <bean id="caseSitesResourceBundles" class="org.alfresco.i18n.ResourceBundleBootstrapComponent" depends-on="OpeneLocalesInitializer">
         <property name="resourceBundles">
             <list>
-                <value>alfresco.messages.caseSiteHistory</value>
                 <value>alfresco.messages.inviteEmail</value>
                 <value>alfresco.messages.pr-activity-list</value>
             </list>
