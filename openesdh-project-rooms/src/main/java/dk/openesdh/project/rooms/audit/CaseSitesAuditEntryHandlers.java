@@ -37,7 +37,7 @@ public class CaseSitesAuditEntryHandlers extends AuditEntryHandler {
     }
 
     @Override
-    public Optional<AuditEntry> handleEntry(String user, long time, Map<String, Serializable> values) {
+    public Optional<AuditEntry> handleEntry(AuditEntry auditEntry, Map<String, Serializable> values) {
         String path = (String) values.get(TRANSACTION_PATH);
         Matcher matcher = siteShortNameMatcher(path);
         if (!matcher.find()) {
@@ -46,7 +46,6 @@ public class CaseSitesAuditEntryHandlers extends AuditEntryHandler {
         String siteShortName = matcher.group(1);
         String transactionAction = (String) values.get(TRANSACTION_ACTION);
 
-        AuditEntry auditEntry = new AuditEntry(user, time);
         auditEntry.setType("PROJECT_ROOM.auditlog.TYPE.SITE");
         auditEntry.addData("siteShortName", siteShortName);
         if (TRANSACTION_ACTION_CREATE.equals(transactionAction)) {

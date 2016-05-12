@@ -49,13 +49,12 @@ public class GoogleDocAuditEntryHandler extends AuditEntryHandler {
     }
 
     @Override
-    public Optional<AuditEntry> handleEntry(String user, long time, Map<String, Serializable> values) {
+    public Optional<AuditEntry> handleEntry(AuditEntry auditEntry, Map<String, Serializable> values) {
         String oldVersion = (String) getFromPropertyMap(
                 values, TRANSACTION_PROPERTIES_FROM, ContentModel.PROP_VERSION_LABEL);
         String newVersion = (String) getFromPropertyMap(
                 values, TRANSACTION_PROPERTIES_TO, ContentModel.PROP_VERSION_LABEL);
 
-        AuditEntry auditEntry = new AuditEntry(user, time);
         auditEntry.setType(DOCUMENT);
         auditEntry.setAction("GOOGLE.DOCS.auditlog.EDIT");
         auditEntry.addData("title", getTitle(values));
